@@ -27,11 +27,12 @@ function adapter.discover_positions(path)
       @test.definition
 
     (package_clause
-      name: (package_identifier) @namespace.name)
+      (package_identifier) @namespace.name)
       @namespace.definition
   ]]
   return lib.treesitter.parse_positions(path, query, {
-    require_namespaces = true,
+    require_namespaces = false,
+    nested_tests = true,
   })
 end
 
