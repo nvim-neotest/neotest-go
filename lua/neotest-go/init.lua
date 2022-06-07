@@ -42,17 +42,15 @@ end
 function adapter.build_spec(args)
   local results_path = async.fn.tempname()
   local position = args.tree:data()
-  local dir = vim.fn.fnamemodify(position.path, ":h")
+  local dir = vim.fn.fnamemodify(position.path, ':h')
 
-  print("position: " .. vim.inspect(position))
   local cmd_args = ({
     dir = { './...' },
     file = { dir, '/...' },
     namespace = { './...' }, -- TODO: get package name
-    test = { '-run', position.name.."$", dir },
+    test = { '-run', position.name .. '$', dir },
   })[position.type]
   local command = { 'go', 'test', '-json', unpack(cmd_args) }
-  print("command: " .. vim.inspect(command))
 
   return {
     command = command,
@@ -64,13 +62,13 @@ function adapter.build_spec(args)
 end
 
 local test_statuses = {
-  run = 'skipped', -- the test has started running,  TODO: need a status for this
-  pause = 'skipped', -- the test has been paused,   TODO: need a status for this
-  cont = 'skipped', -- the test has continued running,  TODO: need a status for this
+  run = false, -- the test has started running,  TODO: need a status for this
+  pause = false, -- the test has been paused,   TODO: need a status for this
+  cont = false, -- the test has continued running,  TODO: need a status for this
+  bench = false, -- the benchmark printed log output but did not fail
+  output = false, -- the test printed output
   pass = 'passed', -- the test passed
-  bench = 'skipped', -- the benchmark printed log output but did not fail
   fail = 'failed', -- the test or benchmark failed
-  output = 'failed', -- the test printed output
   skip = 'failed', -- the test was skipped or the package contained no tests
 }
 
@@ -81,22 +79,24 @@ local test_statuses = {
 function adapter.results(_, result)
   local success, data = pcall(lib.files.read, result.output)
   if not success then
-    data = '{}'
+    return {}
   end
   local lines = vim.split(data, '\r\n')
   local results = {}
   for _, line in ipairs(lines) do
     if line ~= '' then
       local parsed = vim.json.decode(line, { luanil = { object = true } })
-      local short = parsed.Output and parsed.Output:gsub('\n', ''):gsub('\t', '') or ''
-      table.insert(results, {
-        status = test_statuses[parsed.Action],
-        short = short,
-        output = result.output,
-      })
+      local status = test_statuses[parsed.Action]
+      if status then
+        local short = parsed.Output and parsed.Output:gsub('\n', ''):gsub('\t', '') or ''
+        table.insert(results, {
+          status = status,
+          short = short,
+          output = result.output,
+        })
+      end
     end
   end
-  print("results: " .. vim.inspect(results))
   return results
 end
 
