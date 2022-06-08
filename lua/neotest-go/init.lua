@@ -1,7 +1,9 @@
 local async = require('neotest.async')
 local Path = require('plenary.path')
 local lib = require('neotest.lib')
+
 local api = vim.api
+local fmt = string.format
 
 local test_statuses = {
   run = false, -- the test has started running,  TODO: need a status for this
@@ -24,16 +26,43 @@ local function sanitize_output(output)
   return output:gsub('\n', ''):gsub('\t', '')
 end
 
-local function get_go_package_name(buf)
-  buf = buf or 0
-  local package_line = vim.trim(api.nvim_buf_get_lines(buf, 0, 1, false)[1])
-  local package = vim.startswith("package") and vim.split(package_line, " ")[2] or ""
-  return package
+---Get a line in a buffer, defaulting to the first if none is specified
+---@param buf number
+---@param nr number?
+---@return string
+local function get_buf_line(buf, nr)
+  nr = nr or 0
+  assert(buf and type(buf) == 'number', 'A buffer is required to get the first line')
+  return vim.trim(api.nvim_buf_get_lines(buf, nr, nr + 1, false)[1])
 end
 
---- Convert the json output from `gotest` to an intermediate format more similar to
---- neogit.Result. Collect the progress of each test into a subtable and add a field for
---- the final result
+---@return string
+local function get_build_tags()
+  local line = get_buf_line(0)
+  local tag_format
+  for _, item in ipairs({ '// +build ', '//go:build ' }) do
+    if vim.startswith(line, item) then
+      tag_format = item
+    end
+  end
+  if not tag_format then
+    return ''
+  end
+  local tags = vim.split(line:gsub(tag_format, ''), ' ')
+  if #tags > 0 then
+    return fmt('-tags=%s', table.concat(tags, ','))
+  end
+  return ''
+end
+
+local function get_go_package_name(_)
+  local line = get_buf_line(0)
+  return vim.startswith('package', line) and vim.split(line, ' ')[2] or ''
+end
+
+---Convert the json output from `gotest` to an intermediate format more similar to
+---neogit.Result. Collect the progress of each test into a subtable and add a field for
+---the final result
 ---@param lines string[]
 ---@param output_file string
 local function marshall_gotest_output(lines, output_file)
@@ -119,7 +148,9 @@ function adapter.build_spec(args)
     namespace = { package },
     test = { '-run', position.name .. '$', dir },
   })[position.type]
-  local command = { 'go', 'test', '-json', unpack(cmd_args) }
+
+  local tags = get_build_tags()
+  local command = { 'go', 'test', tags, '-json', unpack(cmd_args) }
 
   return {
     command = command,
