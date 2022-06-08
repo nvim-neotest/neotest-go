@@ -1,4 +1,4 @@
-# Neotest-go
+# neotest-go
 
 This plugin provides a go(lang) adapter for the [Neotest](https://github.com/rcarriga/neotest) framework.
 **It is currently a work in progress**. It will transferred to the official neotest organisation (once it's been created).
@@ -8,12 +8,21 @@ This plugin provides a go(lang) adapter for the [Neotest](https://github.com/rca
 Using packer:
 
 ```lua
-  use({
-    'rcarriga/neotest',
-    requires = {
+use({
+  'rcarriga/neotest',
+  requires = {
+    ...,
+    'akinsho/neotest-go',
+  }
+  config = function()
+    require('neotest').setup({
       ...,
-      'akinsho/neotest-go',
+      adapters = {
+        require('neotest-go'),
+      }
     })
+  end
+})
 ```
 
 ## Usage
