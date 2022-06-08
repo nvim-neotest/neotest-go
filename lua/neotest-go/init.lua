@@ -46,7 +46,7 @@ function adapter.build_spec(args)
 
   local cmd_args = ({
     dir = { './...' },
-    file = { dir, '/...' },
+    file = { dir .. '/...' },
     namespace = { './...' }, -- TODO: get package name
     test = { '-run', position.name .. '$', dir },
   })[position.type]
