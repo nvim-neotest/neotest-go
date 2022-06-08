@@ -6,11 +6,13 @@ local api = vim.api
 local fmt = string.format
 
 local test_statuses = {
-  run = false, -- the test has started running,  TODO: need a status for this
-  pause = false, -- the test has been paused,   TODO: need a status for this
-  cont = false, -- the test has continued running,  TODO: need a status for this
+  -- NOTE: Do these statuses need to be handled
+  run = false, -- the test has started running
+  pause = false, -- the test has been paused
+  cont = false, -- the test has continued running
   bench = false, -- the benchmark printed log output but did not fail
   output = false, -- the test printed output
+  --------------------------------------------------
   pass = 'passed', -- the test passed
   fail = 'failed', -- the test or benchmark failed
   skip = 'skipped', -- the test was skipped or the package contained no tests
