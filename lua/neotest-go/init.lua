@@ -1,6 +1,7 @@
 local async = require('neotest.async')
 local Path = require('plenary.path')
 local lib = require('neotest.lib')
+local api = vim.api
 
 local test_statuses = {
   run = false, -- the test has started running,  TODO: need a status for this
@@ -22,6 +23,14 @@ local function sanitize_output(output)
   end
   return output:gsub('\n', ''):gsub('\t', '')
 end
+
+local function get_go_package_name(buf)
+  buf = buf or 0
+  local package_line = vim.trim(api.nvim_buf_get_lines(buf, 0, 1, false)[1])
+  local package = vim.startswith("package") and vim.split(package_line, " ")[2] or ""
+  return package
+end
+
 --- Convert the json output from `gotest` to an intermediate format more similar to
 --- neogit.Result. Collect the progress of each test into a subtable and add a field for
 --- the final result
@@ -102,11 +111,12 @@ function adapter.build_spec(args)
   local results_path = async.fn.tempname()
   local position = args.tree:data()
   local dir = vim.fn.fnamemodify(position.path, ':h')
+  local package = get_go_package_name(position.path)
 
   local cmd_args = ({
     dir = { './...' },
     file = { dir .. '/...' },
-    namespace = { './...' }, -- TODO: get package name
+    namespace = { package },
     test = { '-run', position.name .. '$', dir },
   })[position.type]
   local command = { 'go', 'test', '-json', unpack(cmd_args) }
