@@ -1,7 +1,7 @@
 # neotest-go
 
 This plugin provides a go(lang) adapter for the [Neotest](https://github.com/rcarriga/neotest) framework.
-**It is currently a work in progress**. It will transferred to the official neotest organisation (once it's been created).
+**It is currently a work in progress**. It will be transferred to the official neotest organisation (once it's been created).
 
 ## Installation
 
