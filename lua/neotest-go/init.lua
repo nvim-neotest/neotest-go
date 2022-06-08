@@ -49,10 +49,10 @@ local function get_build_tags()
     return ''
   end
   local tags = vim.split(line:gsub(tag_format, ''), ' ')
-  if #tags > 0 then
-    return fmt('-tags=%s', table.concat(tags, ','))
+  if #tags < 1 then
+    return ''
   end
-  return ''
+  return fmt('-tags=%s', table.concat(tags, ','))
 end
 
 local function get_go_package_name(_)
