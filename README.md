@@ -34,3 +34,7 @@ See neotest's documentation for more information on how to run tests.
 Please do note that _I do not intend to implement feature requests_, this repo is an initial starting point for the nvim golang community.
 Hopefully once it is more stable _go users will be able to contribute to the project_. For my own part I only intend to implement functionality that
 I use in daily workflow.
+
+## Bug Reports
+
+Please file any bug reports and I _might_ take a look if time permits otherwise please submit a PR, this plugin is intended to be by the community for the community.
