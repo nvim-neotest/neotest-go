@@ -145,8 +145,8 @@ function adapter.build_spec(args)
   local package = get_go_package_name(position.path)
 
   local cmd_args = ({
-    dir = { './...' },
-    file = { dir .. '/...' },
+    dir = { dir .. '/...' },
+    file = { position.path },
     namespace = { package },
     test = { '-run', position.name .. '$', dir },
   })[position.type]
