@@ -39,7 +39,7 @@ local function get_buf_line(buf, nr)
   return vim.trim(api.nvim_buf_get_lines(buf, nr, nr + 1, false)[1])
 end
 
----@return string
+---@return string?
 local function get_build_tags()
   local line = get_buf_line(0)
   local tag_format
@@ -49,11 +49,11 @@ local function get_build_tags()
     end
   end
   if not tag_format then
-    return ''
+    return
   end
   local tags = vim.split(line:gsub(tag_format, ''), ' ')
   if #tags < 1 then
-    return ''
+    return
   end
   return fmt('-tags=%s', table.concat(tags, ','))
 end
@@ -152,8 +152,11 @@ function adapter.build_spec(args)
     test = { '-run', position.name .. '$', dir },
   })[position.type]
 
+  local command = { 'go', 'test', '-json', unpack(cmd_args) }
   local tags = get_build_tags()
-  local command = { 'go', 'test', tags, '-json', unpack(cmd_args) }
+  if tags then
+    table.insert(command, 3, tags)
+  end
 
   return {
     command = command,
