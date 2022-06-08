@@ -13,6 +13,54 @@ local test_statuses = {
   skip = 'skipped', -- the test was skipped or the package contained no tests
 }
 
+--- Remove newlines from test output
+---@param output string
+---@return string
+local function sanitize_output(output)
+  if not output then
+    return output
+  end
+  return output:gsub('\n', ''):gsub('\t', '')
+end
+--- Convert the json output from `gotest` to an intermediate format more similar to
+--- neogit.Result. Collect the progress of each test into a subtable and add a field for
+--- the final result
+---@param lines string[]
+---@param output_file string
+local function marshall_gotest_output(lines, output_file)
+  local tests = {}
+  for _, line in ipairs(lines) do
+    if line ~= '' then
+      local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
+      if not ok then
+        vim.schedule(function() -- FIXME: Report global errors correctly
+          vim.notify('Failed to run go tests: ' .. parsed)
+        end)
+      else
+        local output = sanitize_output(parsed.Output)
+        local action, name = parsed.Action, parsed.Test
+        if name then
+          local status = test_statuses[action]
+          tests[name] = tests[name]
+            or {
+              output = {},
+              progress = {},
+              output_file = output_file,
+            }
+          table.insert(tests[name].progress, action)
+          if status then
+            tests[name].status = status
+          end
+          if output then
+            table.insert(tests[name].output, output)
+          end
+        end
+      end
+    end
+  end
+  return tests
+end
+
 ---@type neotest.Adapter
 local adapter = { name = 'neotest-go' }
 
@@ -70,55 +118,6 @@ function adapter.build_spec(args)
       file = position.path,
     },
   }
-end
-
---- Remove newlines from test output
----@param output string
----@return string
-local function sanitize_output(output)
-  if not output then
-    return output
-  end
-  return output:gsub('\n', ''):gsub('\t', '')
-end
-
---- Convert the json output from `gotest` to an intermediate format more similar to
---- neogit.Result. Collect the progress of each test into a subtable and add a field for
---- the final result
----@param lines string[]
----@param output_file string
-local function marshall_gotest_output(lines, output_file)
-  local tests = {}
-  for _, line in ipairs(lines) do
-    if line ~= '' then
-      local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
-      if not ok then
-        vim.schedule(function() -- FIXME: Report global errors correctly
-          vim.notify('Failed to run go tests: ' .. parsed)
-        end)
-      else
-        local output = sanitize_output(parsed.Output)
-        local action, name = parsed.Action, parsed.Test
-        if name then
-          local status = test_statuses[action]
-          tests[name] = tests[name]
-            or {
-              output = {},
-              progress = {},
-              output_file = output_file,
-            }
-          table.insert(tests[name].progress, action)
-          if status then
-            tests[name].status = status
-          end
-          if output then
-            table.insert(tests[name].output, output)
-          end
-        end
-      end
-    end
-  end
-  return tests
 end
 
 ---@async
