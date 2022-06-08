@@ -3,6 +3,7 @@ local Path = require('plenary.path')
 local lib = require('neotest.lib')
 
 local api = vim.api
+local fn = vim.fn
 local fmt = string.format
 
 local test_statuses = {
@@ -179,10 +180,12 @@ function adapter.results(_, result, tree)
   for _, value in tree:iter() do
     local test_output = tests[value.name]
     if test_output then
+      local fname = async.fn.tempname()
+      fn.writefile(test_output.output, fname)
       results[value.id] = {
         status = test_output.status,
         short = table.concat(test_output.output, '\n'),
-        output = test_output.output_file,
+        output = fname,
       }
     end
   end
