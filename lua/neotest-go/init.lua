@@ -191,7 +191,7 @@ function adapter.results(_, result, tree)
   local results = {}
   local no_results = vim.tbl_isempty(tests)
   local empty_result_fname
-  if no_results then
+  if no_results and tests.__unnamed then
     empty_result_fname = async.fn.tempname()
     fn.writefile(tests.__unnamed.output, empty_result_fname)
   end
