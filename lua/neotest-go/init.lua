@@ -95,6 +95,9 @@ local function marshall_gotest_output(lines, output_file)
           if output then
             table.insert(tests[name].output, output)
           end
+        else
+          tests.__unnamed = tests.__unnamed or { output = {} }
+          table.insert(tests.__unnamed.output, output)
         end
       end
     end
@@ -180,16 +183,29 @@ function adapter.results(_, result, tree)
   local lines = vim.split(data, '\r\n')
   local tests = marshall_gotest_output(lines, result.output)
   local results = {}
+  local no_results = vim.tbl_isempty(tests)
+  local empty_result_fname
+  if no_results then
+    empty_result_fname = async.fn.tempname()
+    fn.writefile(tests.__unnamed.output, empty_result_fname)
+  end
   for _, value in tree:iter() do
-    local test_output = tests[value.name]
-    if test_output then
-      local fname = async.fn.tempname()
-      fn.writefile(test_output.output, fname)
+    if no_results then
       results[value.id] = {
-        status = test_output.status,
-        short = table.concat(test_output.output, '\n'),
-        output = fname,
+        status = 'skipped',
+        output = empty_result_fname,
       }
+    else
+      local test_output = tests[value.name]
+      if test_output then
+        local fname = async.fn.tempname()
+        fn.writefile(test_output.output, fname)
+        results[value.id] = {
+          status = test_output.status,
+          short = table.concat(test_output.output, '\n'),
+          output = fname,
+        }
+      end
     end
   end
   return results
