@@ -77,28 +77,34 @@ local function marshall_gotest_output(lines, output_file)
       if not ok then
         logger.error('Failed to parse test output ', output_file)
         return {}
-      else
-        local output = sanitize_output(parsed.Output)
-        local action, name = parsed.Action, parsed.Test
-        if name then
-          local status = test_statuses[action]
-          tests[name] = tests[name]
-            or {
-              output = {},
-              progress = {},
-              output_file = output_file,
-            }
-          table.insert(tests[name].progress, action)
-          if status then
-            tests[name].status = status
-          end
-          if output then
-            table.insert(tests[name].output, output)
-          end
-        else
-          tests.__unnamed = tests.__unnamed or { output = {} }
-          table.insert(tests.__unnamed.output, output)
+      end
+      local output = sanitize_output(parsed.Output)
+      local action, name = parsed.Action, parsed.Test
+      if name then
+        local status = test_statuses[action]
+        -- sub-tests are structured as 'TestMainTest/subtest_clause'
+        local parts = vim.split(name, '/')
+        local is_subtest = #parts > 1
+        local parent = is_subtest and parts[1] or nil
+        tests[name] = tests[name]
+          or {
+            output = {},
+            progress = {},
+            output_file = output_file,
+          }
+        table.insert(tests[name].progress, action)
+        if status then
+          tests[name].status = status
         end
+        if output then
+          table.insert(tests[name].output, output)
+          if parent then
+            table.insert(tests[parent].output, output)
+          end
+        end
+      else
+        tests.__unnamed = tests.__unnamed or { output = {} }
+        table.insert(tests.__unnamed.output, output)
       end
     end
   end
