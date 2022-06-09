@@ -161,10 +161,10 @@ function adapter.build_spec(args)
     test = { '-run', position.name .. '$', dir },
   })[position.type]
 
-  local command = { 'go', 'test', '-json', unpack(cmd_args) }
+  local command = { 'go', 'test', '-v', '-json', unpack(cmd_args) }
   local tags = get_build_tags()
   if tags then
-    table.insert(command, 3, tags)
+    table.insert(command, 4, tags)
   end
 
   return {
