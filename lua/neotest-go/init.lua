@@ -1,6 +1,7 @@
 local async = require('neotest.async')
 local Path = require('plenary.path')
 local lib = require('neotest.lib')
+local logger = require('neotest.logging')
 
 local api = vim.api
 local fn = vim.fn
@@ -74,9 +75,8 @@ local function marshall_gotest_output(lines, output_file)
     if line ~= '' then
       local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
       if not ok then
-        vim.schedule(function() -- FIXME: Report global errors correctly
-          vim.notify('Failed to run go tests: ' .. parsed)
-        end)
+        logger.error('Failed to parse test output ', output_file)
+        return {}
       else
         local output = sanitize_output(parsed.Output)
         local action, name = parsed.Action, parsed.Test
