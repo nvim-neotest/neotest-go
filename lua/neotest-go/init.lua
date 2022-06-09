@@ -135,6 +135,13 @@ function adapter.discover_positions(path)
       (#match? @test.name "^Test"))
       @test.definition
 
+    (call_expression
+      function: (selector_expression
+        field: (field_identifier) @test.method)
+        (#match? @test.method "^Run$")
+      arguments: (argument_list . (_) @test.name))
+      @test.definition
+
     (package_clause
       (package_identifier) @namespace.name)
       @namespace.definition
@@ -143,6 +150,18 @@ function adapter.discover_positions(path)
     require_namespaces = false,
     nested_tests = true,
   })
+end
+
+---@param tree neotest.Tree
+---@param name string
+---@return string
+local function get_prefix(tree, name)
+  local parent_tree = tree:parent()
+  if not parent_tree then
+    return ''
+  end
+  local parent_name = parent_tree:data().name
+  return parent_name .. '/' .. name
 end
 
 ---@async
@@ -158,7 +177,7 @@ function adapter.build_spec(args)
     dir = { dir .. '/...' },
     file = { position.path },
     namespace = { package },
-    test = { '-run', position.name .. '$', dir },
+    test = { '-run', get_prefix(args.tree, position.name) .. '$', dir },
   })[position.type]
 
   local command = { 'go', 'test', '-v', '-json', unpack(cmd_args) }
