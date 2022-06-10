@@ -30,6 +30,11 @@ local function sanitize_output(output)
   return output:gsub('\n', ''):gsub('\t', '')
 end
 
+-- replace whitespace with underscores and remove surrounding quotes
+local function transform_test_name(name)
+  return name:gsub('[%s]', '_'):gsub('^"(.*)"$', '%1')
+end
+
 ---Get a line in a buffer, defaulting to the first if none is specified
 ---@param buf number
 ---@param nr number?
@@ -158,7 +163,7 @@ end
 local function get_prefix(tree, name)
   local parent_tree = tree:parent()
   if not parent_tree then
-    return ''
+    return name
   end
   local parent_name = parent_tree:data().name
   return parent_name .. '/' .. name
@@ -214,7 +219,8 @@ function adapter.results(_, result, tree)
     empty_result_fname = async.fn.tempname()
     fn.writefile(tests.__unnamed.output, empty_result_fname)
   end
-  for _, value in tree:iter() do
+  for _, node in tree:iter_nodes() do
+    local value = node:data()
     if no_results then
       results[value.id] = {
         status = 'skipped',
@@ -222,6 +228,16 @@ function adapter.results(_, result, tree)
       }
     else
       local test_output = tests[value.name]
+      -- If the test is nested there is a chance it is a subtest
+      -- so extract the nodes parent name and see if a nested test result
+      -- exists for it.
+      if not test_output then
+        local parent = node:parent() and node:parent():data().name or nil
+        if parent then
+          local path = get_prefix(node, transform_test_name(value.name))
+          test_output = tests[path]
+        end
+      end
       if test_output then
         local fname = async.fn.tempname()
         fn.writefile(test_output.output, fname)
