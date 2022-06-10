@@ -192,7 +192,7 @@ function adapter.build_spec(args)
   end
 
   return {
-    command = command,
+    command = table.concat(command, ' '),
     context = {
       results_path = results_path,
       file = position.path,
