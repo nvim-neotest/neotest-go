@@ -134,6 +134,16 @@ end
 ---@async
 ---@return neotest.Tree| nil
 function adapter.discover_positions(path)
+  -- NOTE: this is a query to annotate a test function as a namespace
+  -- ((function_declaration
+  --   name: (identifier) @namespace.name
+  --   body: (block
+  --     (call_expression
+  --       function: (selector_expression
+  --         field: (field_identifier) @_method)
+  --   (#match? @_method "^Run"))))
+  --   (#match? @namespace.name "^Test"))
+  --   @namespace.definition
   local query = [[
     ((function_declaration
       name: (identifier) @test.name)
