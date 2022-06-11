@@ -131,6 +131,19 @@ function adapter.is_test_file(file_path)
   return is_test
 end
 
+---@param position neotest.Position The position to return an ID for
+---@param namespaces neotest.Position[] Any namespaces the position is within
+local function generate_position_id(position, namespaces)
+  local prefix = {}
+  for _, namespace in ipairs(namespaces) do
+    if namespace.type ~= 'file' then
+      table.insert(prefix, namespace.name)
+    end
+  end
+  local name = transform_test_name(position.name)
+  return table.concat(vim.tbl_flatten({ position.path, prefix, name }), '::')
+end
+
 ---@async
 ---@return neotest.Tree| nil
 function adapter.discover_positions(path)
@@ -164,6 +177,7 @@ function adapter.discover_positions(path)
   return lib.treesitter.parse_positions(path, query, {
     require_namespaces = false,
     nested_tests = true,
+    position_id = generate_position_id,
   })
 end
 
@@ -237,17 +251,9 @@ function adapter.results(_, result, tree)
         output = empty_result_fname,
       }
     else
-      local test_output = tests[value.name]
-      -- If the test is nested there is a chance it is a subtest
-      -- so extract the nodes parent name and see if a nested test result
-      -- exists for it.
-      if not test_output then
-        local parent = node:parent() and node:parent():data().name or nil
-        if parent then
-          local path = get_prefix(node, transform_test_name(value.name))
-          test_output = tests[path]
-        end
-      end
+      local id_parts = vim.split(value.id, "::")
+      table.remove(id_parts, 1)
+      local test_output = tests[table.concat(id_parts, '/')]
       if test_output then
         local fname = async.fn.tempname()
         fn.writefile(test_output.output, fname)
