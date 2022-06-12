@@ -1,5 +1,9 @@
 package main
 
-func doesAThing(a, b int) int {
+func add(a, b int) int {
 	return a + b
+}
+
+func subtract(a, b int) int {
+	return a - b
 }
