@@ -186,7 +186,7 @@ end
 ---@return string
 local function get_prefix(tree, name)
   local parent_tree = tree:parent()
-  if not parent_tree then
+  if not parent_tree or parent_tree:data().type == 'file' then
     return name
   end
   local parent_name = parent_tree:data().name
@@ -251,7 +251,7 @@ function adapter.results(_, result, tree)
         output = empty_result_fname,
       }
     else
-      local id_parts = vim.split(value.id, "::")
+      local id_parts = vim.split(value.id, '::')
       table.remove(id_parts, 1)
       local test_output = tests[table.concat(id_parts, '/')]
       if test_output then
