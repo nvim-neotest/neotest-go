@@ -74,16 +74,21 @@ end
 ---the final result
 ---@param lines string[]
 ---@param output_file string
+---@return table, table
 local function marshall_gotest_output(lines, output_file)
   local tests = {}
+  local log = {}
   for _, line in ipairs(lines) do
     if line ~= '' then
       local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
       if not ok then
-        logger.error('Failed to parse test output ', output_file)
-        return {}
+        logger.error(fmt('Failed to parse test output: \n%s\n%s', parsed, lines), output_file)
+        return tests, log
       end
       local output = sanitize_output(parsed.Output)
+      if output then
+        table.insert(log, output)
+      end
       local action, name = parsed.Action, parsed.Test
       if name then
         local status = test_statuses[action]
@@ -91,12 +96,13 @@ local function marshall_gotest_output(lines, output_file)
         local parts = vim.split(name, '/')
         local is_subtest = #parts > 1
         local parent = is_subtest and parts[1] or nil
-        tests[name] = tests[name]
-          or {
+        if not tests[name] then
+          tests[name] = {
             output = {},
             progress = {},
             output_file = output_file,
           }
+        end
         table.insert(tests[name].progress, action)
         if status then
           tests[name].status = status
@@ -107,13 +113,10 @@ local function marshall_gotest_output(lines, output_file)
             table.insert(tests[parent].output, output)
           end
         end
-      else
-        tests.__unnamed = tests.__unnamed or { output = {} }
-        table.insert(tests.__unnamed.output, output)
       end
     end
   end
-  return tests
+  return tests, log
 end
 
 ---@type neotest.Adapter
@@ -235,13 +238,13 @@ function adapter.results(_, result, tree)
     return {}
   end
   local lines = vim.split(data, '\r\n')
-  local tests = marshall_gotest_output(lines, result.output)
+  local tests, log = marshall_gotest_output(lines, result.output)
   local results = {}
   local no_results = vim.tbl_isempty(tests)
   local empty_result_fname
-  if no_results and tests.__unnamed then
+  if no_results then
     empty_result_fname = async.fn.tempname()
-    fn.writefile(tests.__unnamed.output, empty_result_fname)
+    fn.writefile(log, empty_result_fname)
   end
   for _, node in tree:iter_nodes() do
     local value = node:data()
