@@ -12,10 +12,10 @@ Using packer:
 
 ```lua
 use({
-  'rcarriga/neotest',
+  'nvim-neotest/neotest',
   requires = {
     ...,
-    'akinsho/neotest-go',
+    'nvim-neotest/neotest-go',
   }
   config = function()
     require('neotest').setup({
