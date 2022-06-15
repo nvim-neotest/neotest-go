@@ -207,7 +207,9 @@ function adapter.build_spec(args)
 
   local cmd_args = ({
     dir = { dir .. '/...' },
-    file = { position.path },
+    -- file is the same as dir because running a single test file
+    -- fails if it has external dependencies
+    file = { dir .. '/...' },
     namespace = { package },
     test = { '-run', get_prefix(args.tree, position.name) .. '$', dir },
   })[position.type]
