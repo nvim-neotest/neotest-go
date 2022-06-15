@@ -30,7 +30,24 @@ use({
 
 ## Usage
 
-See neotest's documentation for more information on how to run tests.
+_NOTE_: all usages of `require('neotest').run.run` can be mapped to a command in your config (this is not included and should be done by the user)
+
+### Test single function
+
+To test a single test hover over the test and run `require('neotest').run.run()`
+
+### Test File
+
+To test a single test hover over the test and run `require('neotest').run.run(vim.fn.expand('%'))`
+
+### Test Directory
+
+To test a single test hover over the test and run `require('neotest').run.run("path/to/directory")`
+
+### Test Suite
+
+To test a single test hover over the test and run `require('neotest').run.run("path/to/root_project")`
+e.g. `require('neotest').run.run(vim.fn.getcwd())`, presuming that vim's directory is the same as the project root
 
 ## Contributing
 
