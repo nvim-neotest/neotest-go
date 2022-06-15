@@ -27,14 +27,21 @@ local function sanitize_output(output)
   if not output then
     return output
   end
-  if string.find(output, 'FAIL') then
-    output = output:gsub("^", "[31m"):gsub("$", "[0m")
-  elseif string.find(output, 'PASS') then
-    output = output:gsub("^", "[32m"):gsub("$", "[0m")
-  elseif string.find(output, 'SKIP') then
-    output = output:gsub("^", "[33m"):gsub("$", "[0m")
-  end
   return output:gsub('\n', ''):gsub('\t', '')
+end
+
+local function highlight_output(output)
+  if not output then
+    return output
+  end
+  if string.find(output, 'FAIL') then
+    output = output:gsub('^', '[31m'):gsub('$', '[0m')
+  elseif string.find(output, 'PASS') then
+    output = output:gsub('^', '[32m'):gsub('$', '[0m')
+  elseif string.find(output, 'SKIP') then
+    output = output:gsub('^', '[33m'):gsub('$', '[0m')
+  end
+  return output
 end
 
 -- replace whitespace with underscores and remove surrounding quotes
@@ -92,7 +99,7 @@ local function marshall_gotest_output(lines, output_file)
         logger.error(fmt('Failed to parse test output: \n%s\n%s', parsed, lines), output_file)
         return tests, log
       end
-      local output = sanitize_output(parsed.Output)
+      local output = highlight_output(sanitize_output(parsed.Output))
       if output then
         table.insert(log, output)
       end
