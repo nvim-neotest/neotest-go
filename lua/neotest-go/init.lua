@@ -216,7 +216,11 @@ end
 function adapter.build_spec(args)
   local results_path = async.fn.tempname()
   local position = args.tree:data()
-  local dir = vim.fn.fnamemodify(position.path, ':h')
+  local dir = position.path
+  -- The path for the position is not a directory, ensure the directory variable refers to one
+  if fn.isdirectory(position.path) ~= 1 then
+    dir = fn.fnamemodify(position.path, ':h')
+  end
   local package = get_go_package_name(position.path)
 
   local cmd_args = ({
