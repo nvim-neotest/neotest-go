@@ -38,15 +38,15 @@ To test a single test hover over the test and run `require('neotest').run.run()`
 
 ### Test File
 
-To test a single test hover over the test and run `require('neotest').run.run(vim.fn.expand('%'))`
+To test a file run `require('neotest').run.run(vim.fn.expand('%'))`
 
 ### Test Directory
 
-To test a single test hover over the test and run `require('neotest').run.run("path/to/directory")`
+To test a directory run `require('neotest').run.run("path/to/directory")`
 
 ### Test Suite
 
-To test a single test hover over the test and run `require('neotest').run.run("path/to/root_project")`
+To test the full test suite run `require('neotest').run.run("path/to/root_project")`
 e.g. `require('neotest').run.run(vim.fn.getcwd())`, presuming that vim's directory is the same as the project root
 
 ## Contributing
