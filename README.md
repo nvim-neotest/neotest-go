@@ -32,22 +32,30 @@ use({
 
 _NOTE_: all usages of `require('neotest').run.run` can be mapped to a command in your config (this is not included and should be done by the user)
 
-### Test single function
+#### Test single function
 
 To test a single test hover over the test and run `require('neotest').run.run()`
 
-### Test File
+#### Test file
 
 To test a file run `require('neotest').run.run(vim.fn.expand('%'))`
 
-### Test Directory
+#### Test directory
 
 To test a directory run `require('neotest').run.run("path/to/directory")`
 
-### Test Suite
+#### Test suite
 
 To test the full test suite run `require('neotest').run.run("path/to/root_project")`
 e.g. `require('neotest').run.run(vim.fn.getcwd())`, presuming that vim's directory is the same as the project root
+
+#### Additional arguments
+
+Additional arguments for the go test command can be sent using the `extra_args` field e.g.
+
+```lua
+require('neotest').run.run({path, extra_args = {"-race"}})
+```
 
 ## Contributing
 
