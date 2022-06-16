@@ -184,7 +184,7 @@ function adapter.discover_positions(path)
       function: (selector_expression
         field: (field_identifier) @test.method)
         (#match? @test.method "^Run$")
-      arguments: (argument_list . (_) @test.name))
+      arguments: (argument_list . (interpreted_string_literal) @test.name))
       @test.definition
 
     (package_clause
