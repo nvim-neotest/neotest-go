@@ -89,7 +89,7 @@ end
 ---@param lines string[]
 ---@param output_file string
 ---@return table, table
-local function marshall_gotest_output(lines, output_file)
+local function marshal_gotest_output(lines, output_file)
   local tests = {}
   local log = {}
   for _, line in ipairs(lines) do
@@ -256,7 +256,7 @@ function adapter.results(_, result, tree)
     return {}
   end
   local lines = vim.split(data, '\r\n')
-  local tests, log = marshall_gotest_output(lines, result.output)
+  local tests, log = marshal_gotest_output(lines, result.output)
   local results = {}
   local no_results = vim.tbl_isempty(tests)
   local empty_result_fname
