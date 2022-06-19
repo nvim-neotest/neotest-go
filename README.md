@@ -35,6 +35,7 @@ _NOTE_: all usages of `require('neotest').run.run` can be mapped to a command in
 #### Test single function
 
 To test a single test hover over the test and run `require('neotest').run.run()`
+
 **NOTE:** Please not that `testify` test methods cannot be run using this function
 as `go test` cannot run these tests individually using the `-run` flag.
 
