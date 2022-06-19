@@ -180,6 +180,10 @@ function adapter.discover_positions(path)
       (#match? @test.name "^Test"))
       @test.definition
 
+    (method_declaration
+      name: (field_identifier) @test.name
+      (#match? @test.name "^Test")) @test.definition
+
     (call_expression
       function: (selector_expression
         field: (field_identifier) @test.method)
