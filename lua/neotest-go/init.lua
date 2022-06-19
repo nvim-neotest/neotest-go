@@ -180,10 +180,6 @@ function adapter.discover_positions(path)
         (#match? @test.method "^Run$")
       arguments: (argument_list . (interpreted_string_literal) @test.name))
       @test.definition
-
-    (package_clause
-      (package_identifier) @namespace.name)
-      @namespace.definition
   ]]
   return lib.treesitter.parse_positions(path, query, {
     require_namespaces = false,
