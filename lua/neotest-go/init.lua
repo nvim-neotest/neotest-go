@@ -167,12 +167,12 @@ function adapter.discover_positions(path)
   local query = [[
     ((function_declaration
       name: (identifier) @test.name)
-      (#match? @test.name "^Test"))
+      (#match? @test.name "^(Test|Example)"))
       @test.definition
 
     (method_declaration
       name: (field_identifier) @test.name
-      (#match? @test.name "^Test")) @test.definition
+      (#match? @test.name "^(Test|Example)")) @test.definition
 
     (call_expression
       function: (selector_expression
