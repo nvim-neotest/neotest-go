@@ -1,6 +1,7 @@
 local async = require('neotest.async')
 local Path = require('plenary.path')
 local lib = require('neotest.lib')
+local utils = require('neotest-go.utils')
 
 local api = vim.api
 local fn = vim.fn
@@ -249,10 +250,15 @@ local function get_prefix(tree, name)
   return parent_name .. '/' .. name
 end
 
+local get_function_name = function(args, position)
+  return get_prefix(args.tree, position.name)
+end
+
 ---@async
 ---@param args neotest.RunArgs
 ---@return neotest.RunSpec
 function adapter.build_spec(args)
+  local strategy = args.strategy
   local results_path = async.fn.tempname()
   local position = args.tree:data()
   local dir = position.path
@@ -280,6 +286,20 @@ function adapter.build_spec(args)
     vim.list_extend(get_args(), args.extra_args or {}),
     unpack(cmd_args),
   })
+
+  if strategy == 'dap' then
+    local func_name = get_function_name(args, position)
+    local debug_args = utils.get_test_function_debug_args(func_name)
+    local config = utils.get_strategy_config(strategy, debug_args)
+    return {
+      command = table.concat(command, ' '),
+      context = {
+        results_path = results_path,
+        file = position.path,
+      },
+      strategy = config,
+    }
+  end
 
   return {
     command = table.concat(command, ' '),
