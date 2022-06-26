@@ -83,6 +83,12 @@ local function get_go_package_name(_)
   return vim.startswith('package', line) and vim.split(line, ' ')[2] or ''
 end
 
+local function get_experimental_opts()
+  return {
+    test_table = false
+  }
+end
+
 ---Convert the json output from `gotest` to an intermediate format more similar to
 ---neogit.Result. Collect the progress of each test into a subtable and add a field for
 ---the final result
@@ -181,6 +187,28 @@ function adapter.discover_positions(path)
       arguments: (argument_list . (interpreted_string_literal) @test.name))
       @test.definition
   ]]
+
+  if get_experimental_opts().test_table then
+    query = query .. [[
+
+    (short_var_declaration
+      left: (expression_list
+        (identifier) @table.name)
+        (#match? @table.name "test")
+      right: (expression_list
+        (composite_literal
+          (literal_value
+            (literal_element
+              (literal_value
+                (keyed_element
+                  (literal_element
+                    (identifier) @test.field.name
+                    (#match? @test.field.name "name|desc"))
+                  (literal_element
+                    (interpreted_string_literal) @test.name)))) @test.definition ))))
+    ]]
+  end
+
   return lib.treesitter.parse_positions(path, query, {
     require_namespaces = false,
     nested_tests = true,
@@ -285,8 +313,20 @@ function adapter.results(_, result, tree)
   return results
 end
 
+local is_callable = function(obj)
+  return type(obj) == 'function' or (type(obj) == 'table' and obj.__call)
+end
+
 setmetatable(adapter, {
-  __call = function()
+  __call = function(_, opts)
+    if is_callable(opts.experimental) then
+      get_experimental_opts = opts.experimental
+    elseif opts.experimental then
+      get_experimental_opts = function()
+        return opts.experimental
+      end
+    end
+
     return adapter
   end,
 })
