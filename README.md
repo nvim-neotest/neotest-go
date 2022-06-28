@@ -28,6 +28,21 @@ use({
 })
 ```
 
+You can also supply optional arguments to the setup function if you want to
+enable experimental features.
+
+```lua
+require("neotest").setup({
+  adapters = {
+    require("neotest-go")({
+      experimental = { 
+        test_table = true,
+      }
+    })
+  }
+})
+```
+
 ## Usage
 
 _NOTE_: all usages of `require('neotest').run.run` can be mapped to a command in your config (this is not included and should be done by the user)
