@@ -263,7 +263,7 @@ function adapter.build_spec(args)
     -- fails if it has external dependencies
     file = { dir .. '/...' },
     namespace = { package },
-    test = { '-run', get_prefix(args.tree, position.name) .. '$', dir },
+    test = { '-run', get_prefix(args.tree, position.name) .. '\\$', dir },
   })[position.type]
 
   local command = vim.tbl_flatten({
