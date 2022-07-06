@@ -1,7 +1,6 @@
 local async = require('neotest.async')
 local Path = require('plenary.path')
 local lib = require('neotest.lib')
-local logger = require('neotest.logging')
 
 local api = vim.api
 local fn = vim.fn
