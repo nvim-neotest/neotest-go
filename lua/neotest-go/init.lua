@@ -102,7 +102,9 @@ local function marshal_gotest_output(lines, output_file)
     if line ~= '' then
       local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
       if not ok then
-        logger.error(fmt('Failed to parse test output: \n%s\n%s', parsed, lines), output_file)
+        log = vim.tbl_map(function (l)
+          return highlight_output(l)
+        end, lines)
         return tests, log
       end
       local output = highlight_output(sanitize_output(parsed.Output))
@@ -308,7 +310,7 @@ function adapter.results(_, result, tree)
     local value = node:data()
     if no_results then
       results[value.id] = {
-        status = 'skipped',
+        status = test_statuses.fail,
         output = empty_result_fname,
       }
     else
