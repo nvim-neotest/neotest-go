@@ -29,7 +29,7 @@ use({
 ```
 
 You can also supply optional arguments to the setup function if you want to
-enable experimental features.
+enable experimental features or provide more arguments to `go test` command.
 
 ```lua
 require("neotest").setup({
@@ -37,7 +37,8 @@ require("neotest").setup({
     require("neotest-go")({
       experimental = { 
         test_table = true,
-      }
+      },
+      args = { "-count=1", "-timeout=60s" }
     })
   }
 })
