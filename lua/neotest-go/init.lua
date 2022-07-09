@@ -88,6 +88,10 @@ local function get_experimental_opts()
   }
 end
 
+local get_args = function()
+  return {}
+end
+
 ---Convert the json output from `gotest` to an intermediate format more similar to
 ---neogit.Result. Collect the progress of each test into a subtable and add a field for
 ---the final result
@@ -273,7 +277,7 @@ function adapter.build_spec(args)
     '-v',
     '-json',
     get_build_tags(),
-    args.extra_args or {},
+    vim.list_extend(get_args(), args.extra_args or {}),
     unpack(cmd_args),
   })
 
@@ -344,6 +348,13 @@ setmetatable(adapter, {
       end
     end
 
+    if is_callable(opts.args) then
+      get_args = opts.args
+    elseif opts.args then
+      get_args = function()
+        return opts.args
+      end
+    end
     return adapter
   end,
 })
