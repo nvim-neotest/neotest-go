@@ -170,7 +170,7 @@ local function is_error(lines)
   for _, line in ipairs(lines) do
     line = line:lower()
     for _, pattern in ipairs(error_pattern) do
-      if string.match(line, string.lower(pattern)) then
+      if line:match(pattern:lower()) then
         return true
       end
     end
