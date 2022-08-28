@@ -235,8 +235,8 @@ local function marshal_gotest_output(lines)
           }
         end
 
-        -- if a new file and linenumber is present in the current line, use this info from now on
-        -- beginn collection log data with everything after the file:linenumber
+        -- if a new file and line number is present in the current line, use this info from now on
+        -- begin collection log data with everything after the file:linenumber
         local new_testfile, new_linenumber = get_testfileinfo(parsed.Output)
         if new_testfile and new_linenumber then
           testfile = new_testfile
