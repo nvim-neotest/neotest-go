@@ -179,10 +179,7 @@ local function is_error(lines)
 end
 
 local function is_test_logoutput(line)
-  if line and string.match(line, '^%s%s%s%s%s%s%s%s') then
-    return true
-  end
-  return false
+  return line and line:match('^%s%s%s%s%s%s%s%s') ~= nil
 end
 
 local function get_errors_from_test(test, file_name)
