@@ -107,7 +107,7 @@ local function get_go_module_name(go_root)
     return
   end
   local line = gomodule[1]
-  local module = string.match(line, 'module (.+)')
+  local module = line:match('module (.+)')
   return module
 end
 
