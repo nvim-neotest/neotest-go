@@ -127,7 +127,7 @@ end
 ---@param package string
 ---@param test string
 ---@return string, string?
-local function normalize_testname(package, test)
+local function normalize_test_name(package, test)
   -- sub-tests are structured as 'TestMainTest/subtest_clause'
   local parts = vim.split(test, '/')
   local is_subtest = #parts > 1
@@ -158,7 +158,7 @@ end
 --- "    main_test.go:12: Some error message\n"
 ---@param line string
 ---@return string?, number?
-local function get_testfileinfo(line)
+local function get_test_file_info(line)
   if line then
     local file, linenumber = string.match(line, testfile_pattern)
     return file, tonumber(linenumber)
@@ -179,7 +179,7 @@ local function is_error(lines)
 end
 
 local function is_test_logoutput(line)
-  return line and line:match('^%s%s%s%s%s%s%s%s') ~= nil
+  return line and line:match(testlog_pattern) ~= nil
 end
 
 local function get_errors_from_test(test, file_name)
@@ -223,7 +223,7 @@ local function marshal_gotest_output(lines)
       if test then
         local status = test_statuses[action]
 
-        local testname, parenttestname = normalize_testname(package, test)
+        local testname, parenttestname = normalize_test_name(package, test)
         if not tests[testname] then
           tests[testname] = {
             output = {},
@@ -234,10 +234,10 @@ local function marshal_gotest_output(lines)
 
         -- if a new file and line number is present in the current line, use this info from now on
         -- begin collection log data with everything after the file:linenumber
- local new_test_file, new_line_number = get_test_file_info(parsed.Output)
-        if new_testfile and new_linenumber then
-          testfile = new_testfile
-          linenumber = new_linenumber
+        local new_test_file, new_line_number = get_test_file_info(parsed.Output)
+        if new_test_file and new_line_number then
+          testfile = new_test_file
+          linenumber = new_line_number
           if not tests[testname].file_output[testfile] then
             tests[testname].file_output[testfile] = {}
           end
