@@ -23,20 +23,16 @@ local testfile_pattern = '^%s%s%s%s(.*_test.go):(%d+): '
 local testlog_pattern = '^%s%s%s%s%s%s%s%s'
 local error_pattern = { 'error' }
 
---- Remove newlines from test output
+--- Removes `go test` specific prefixes
+--- For removing newlines / tabs / whitespaces to beautify diagnostic,
+--- vim.diagnostic.config(virtual_text.format) should be used
 ---@param output string?
 ---@return string?
 local function sanitize_output(output)
   if not output then
     return nil
   end
-  output = output
-    :gsub(testfile_pattern, '')
-    :gsub(testlog_pattern, '')
-    :gsub('\n', ' ')
-    :gsub('\t', ' ')
-    :gsub('%s+', ' ')
-    :gsub('^%s+', '')
+  output = output:gsub(testfile_pattern, ''):gsub(testlog_pattern, '')
   return output
 end
 
@@ -196,7 +192,7 @@ local function get_errors_from_test(test, file_name)
   local errors = {}
   for line, output in pairs(test.file_output[file_name]) do
     if is_error(output) then
-      table.insert(errors, { line = line - 1, message = 'go test: ' .. table.concat(output, '') })
+      table.insert(errors, { line = line - 1, message = table.concat(output, '') })
     end
   end
   return errors
@@ -248,9 +244,16 @@ local function marshal_gotest_output(lines)
           if not tests[testname].file_output[testfile] then
             tests[testname].file_output[testfile] = {}
           end
-          tests[testname].file_output[testfile][linenumber] = {
-            sanitize_output(parsed.Output),
-          }
+
+          -- In our first error line we don't want empty lines (testify logs start with empty line (\n))
+          local sanitized_output = sanitize_output(parsed.Output)
+          if sanitized_output and not sanitized_output:match('^%s*$') then
+            tests[testname].file_output[testfile][linenumber] = {
+              sanitize_output(parsed.Output),
+            }
+          else
+            tests[testname].file_output[testfile][linenumber] = {}
+          end
         end
 
         -- if we are in the context of a file, collect the logged data
