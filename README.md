@@ -39,7 +39,7 @@ use({
 ```
 
 The above mentioned `vim.diagnostic.config` is optional but recommended if you 
-enabled the diagnostic option of neotest. Especially [testify](https://github.com/stretchr/testify)
+enabled the `diagnostic` option of neotest. Especially [testify](https://github.com/stretchr/testify)
 makes heavy use of tabs and newlines in the error messages, which bloats the 
 generated virtual text otherwise.
 
