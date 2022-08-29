@@ -2,10 +2,6 @@
 
 This plugin provides a go(lang) adapter for the [Neotest](https://github.com/rcarriga/neotest) framework.
 
-## Status:
-
-**Work in progress 🚧**.
-
 ## Installation
 
 Using packer:
@@ -35,7 +31,7 @@ enable experimental features or provide more arguments to `go test` command.
 require("neotest").setup({
   adapters = {
     require("neotest-go")({
-      experimental = { 
+      experimental = {
         test_table = true,
       },
       args = { "-count=1", "-timeout=60s" }
@@ -52,7 +48,7 @@ _NOTE_: all usages of `require('neotest').run.run` can be mapped to a command in
 
 To test a single test hover over the test and run `require('neotest').run.run()`
 
-**NOTE:** Please not that `testify` test methods cannot be run using this function
+**NOTE:** Please note that `testify` test methods cannot be run using this function
 as `go test` cannot run these tests individually using the `-run` flag.
 
 #### Test file
