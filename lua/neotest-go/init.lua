@@ -319,6 +319,7 @@ end
 ---@return neotest.Tree| nil
 function adapter.discover_positions(path)
   local query = [[
+    ;;query
     ((function_declaration
       name: (identifier) @test.name)
       (#match? @test.name "^(Test|Example)"))
@@ -339,7 +340,7 @@ function adapter.discover_positions(path)
   if get_experimental_opts().test_table then
     query = query
       .. [[
-
+;; query
     (block
       (short_var_declaration
         left: (expression_list
