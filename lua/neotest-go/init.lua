@@ -166,6 +166,9 @@ local function get_test_file_info(line)
   return nil, nil
 end
 
+--- Checks if in the given lines contains an error pattern
+---@param lines table
+---@return boolean
 local function is_error(lines)
   for _, line in ipairs(lines) do
     line = line:lower()
@@ -178,10 +181,17 @@ local function is_error(lines)
   return false
 end
 
+--- Checks if in the given line contains the testlog_pattern
+---@param line string
+---@return boolean
 local function is_test_logoutput(line)
   return line and line:match(testlog_pattern) ~= nil
 end
 
+--- Converts from test (as created by marshal_gotest_output) to error (as needed by neotest)
+---@param test table
+---@param file_name string
+---@return table?
 local function get_errors_from_test(test, file_name)
   if not test.file_output[file_name] then
     return nil
