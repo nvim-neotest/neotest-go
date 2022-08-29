@@ -1,7 +1,7 @@
 local async = require('neotest.async')
 local Path = require('plenary.path')
 local lib = require('neotest.lib')
-
+local logger = require('neotest.logging')
 local api = vim.api
 local fn = vim.fn
 local fmt = string.format
@@ -19,14 +19,21 @@ local test_statuses = {
   skip = 'skipped', -- the test was skipped or the package contained no tests
 }
 
---- Remove newlines from test output
----@param output string
----@return string
+local testfile_pattern = '^%s%s%s%s(.*_test.go):(%d+): '
+local testlog_pattern = '^%s%s%s%s%s%s%s%s'
+local error_pattern = { 'error' }
+
+--- Removes `go test` specific prefixes
+--- For removing newlines / tabs / whitespaces to beautify diagnostic,
+--- vim.diagnostic.config(virtual_text.format) should be used
+---@param output string?
+---@return string?
 local function sanitize_output(output)
   if not output then
-    return output
+    return nil
   end
-  return output:gsub('\n', ''):gsub('\t', '')
+  output = output:gsub(testfile_pattern, ''):gsub(testlog_pattern, '')
+  return output
 end
 
 local function highlight_output(output)
@@ -82,9 +89,31 @@ local function get_go_package_name(_)
   return vim.startswith('package', line) and vim.split(line, ' ')[2] or ''
 end
 
+--- gets the root directory of the go project
+---@param start_file string
+---@return string?
+local function get_go_root(start_file)
+  return lib.files.match_root_pattern('go.mod')(start_file)
+end
+
+--- gets the go module name
+---@param go_root string
+---@return string?
+local function get_go_module_name(go_root)
+  local gomod_file = go_root .. '/go.mod'
+  local gomod_success, gomodule = pcall(lib.files.read_lines, gomod_file)
+  if not gomod_success then
+    logger.error("neotest-go: couldn't read go.mod file: " .. gomodule)
+    return
+  end
+  local line = gomodule[1]
+  local module = line:match('module (.+)')
+  return module
+end
+
 local function get_experimental_opts()
   return {
-    test_table = false
+    test_table = false,
   }
 end
 
@@ -92,50 +121,164 @@ local get_args = function()
   return {}
 end
 
+--- Converts from a given go package and the "/" seperated testname to a
+--- format "package::test::subtest".
+--- Returns the test in this format as well as the testname of the parent test (if present)
+---@param package string
+---@param test string
+---@return string, string?
+local function normalize_test_name(package, test)
+  -- sub-tests are structured as 'TestMainTest/subtest_clause'
+  local parts = vim.split(test, '/')
+  local is_subtest = #parts > 1
+  local parenttest = is_subtest and (package .. '::' .. parts[1]) or nil
+  return package .. '::' .. table.concat(parts, '::'), parenttest
+end
+
+--- Converts from a given neotest id and go_root / go_module to format
+--- "package::test::subtest"
+---@param id string
+---@param go_root string
+---@param go_module string
+---@return string
+local function normalize_id(id, go_root, go_module)
+  local normalized_id, _ = id:gsub(go_root, go_module):gsub('/%w*_test.go', '')
+  return normalized_id
+end
+
+--- Extracts the file name from a neotest id
+---@param id string
+---@return string
+local function get_filename_from_id(id)
+  local filename = string.match(id, '/(%w*_test.go)::')
+  return filename
+end
+
+--- Extracts testfile and linenumber of go test output in format
+--- "    main_test.go:12: Some error message\n"
+---@param line string
+---@return string?, number?
+local function get_test_file_info(line)
+  if line then
+    local file, linenumber = string.match(line, testfile_pattern)
+    return file, tonumber(linenumber)
+  end
+  return nil, nil
+end
+
+--- Checks if in the given lines contains an error pattern
+---@param lines table
+---@return boolean
+local function is_error(lines)
+  for _, line in ipairs(lines) do
+    line = line:lower()
+    for _, pattern in ipairs(error_pattern) do
+      if line:match(pattern:lower()) then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+--- Checks if in the given line contains the testlog_pattern
+---@param line string
+---@return boolean
+local function is_test_logoutput(line)
+  return line and line:match(testlog_pattern) ~= nil
+end
+
+--- Converts from test (as created by marshal_gotest_output) to error (as needed by neotest)
+---@param test table
+---@param file_name string
+---@return table?
+local function get_errors_from_test(test, file_name)
+  if not test.file_output[file_name] then
+    return nil
+  end
+  local errors = {}
+  for line, output in pairs(test.file_output[file_name]) do
+    if is_error(output) then
+      table.insert(errors, { line = line - 1, message = table.concat(output, '') })
+    end
+  end
+  return errors
+end
+
 ---Convert the json output from `gotest` to an intermediate format more similar to
 ---neogit.Result. Collect the progress of each test into a subtable and add a field for
 ---the final result
 ---@param lines string[]
----@param output_file string
 ---@return table, table
-local function marshal_gotest_output(lines, output_file)
+local function marshal_gotest_output(lines)
   local tests = {}
   local log = {}
+  local testfile, linenumber
   for _, line in ipairs(lines) do
     if line ~= '' then
       local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
       if not ok then
-        log = vim.tbl_map(function (l)
+        log = vim.tbl_map(function(l)
           return highlight_output(l)
         end, lines)
         return tests, log
       end
-      local output = highlight_output(sanitize_output(parsed.Output))
+      local output = highlight_output(parsed.Output)
       if output then
         table.insert(log, output)
+      else
+        testfile, linenumber = nil, nil
       end
-      local action, name = parsed.Action, parsed.Test
-      if name then
+      local action, package, test = parsed.Action, parsed.Package, parsed.Test
+      if test then
         local status = test_statuses[action]
-        -- sub-tests are structured as 'TestMainTest/subtest_clause'
-        local parts = vim.split(name, '/')
-        local is_subtest = #parts > 1
-        local parent = is_subtest and parts[1] or nil
-        if not tests[name] then
-          tests[name] = {
+
+        local testname, parenttestname = normalize_test_name(package, test)
+        if not tests[testname] then
+          tests[testname] = {
             output = {},
             progress = {},
-            output_file = output_file,
+            file_output = {},
           }
         end
-        table.insert(tests[name].progress, action)
+
+        -- if a new file and line number is present in the current line, use this info from now on
+        -- begin collection log data with everything after the file:linenumber
+        local new_test_file, new_line_number = get_test_file_info(parsed.Output)
+        if new_test_file and new_line_number then
+          testfile = new_test_file
+          linenumber = new_line_number
+          if not tests[testname].file_output[testfile] then
+            tests[testname].file_output[testfile] = {}
+          end
+
+          -- In our first error line we don't want empty lines (testify logs start with empty line (\n))
+          local sanitized_output = sanitize_output(parsed.Output)
+          if sanitized_output and not sanitized_output:match('^%s*$') then
+            tests[testname].file_output[testfile][linenumber] = {
+              sanitize_output(parsed.Output),
+            }
+          else
+            tests[testname].file_output[testfile][linenumber] = {}
+          end
+        end
+
+        -- if we are in the context of a file, collect the logged data
+        if testfile and linenumber and is_test_logoutput(parsed.Output) then
+          table.insert(
+            tests[testname].file_output[testfile][linenumber],
+            sanitize_output(parsed.Output)
+          )
+        end
+
+        table.insert(tests[testname].progress, action)
         if status then
-          tests[name].status = status
+          tests[testname].status = status
         end
         if output then
-          table.insert(tests[name].output, output)
-          if parent then
-            table.insert(tests[parent].output, output)
+          table.insert(tests[testname].output, output)
+          if parenttestname then
+            table.insert(tests[parenttestname].output, output)
           end
         end
       end
@@ -194,7 +337,8 @@ function adapter.discover_positions(path)
   ]]
 
   if get_experimental_opts().test_table then
-    query = query .. [[
+    query = query
+      .. [[
 
     (block
       (short_var_declaration
@@ -291,17 +435,27 @@ function adapter.build_spec(args)
 end
 
 ---@async
----@param _ neotest.RunSpec
+---@param spec neotest.RunSpec
 ---@param result neotest.StrategyResult
 ---@param tree neotest.Tree
 ---@return table<string, neotest.Result[]>
-function adapter.results(_, result, tree)
-  local success, data = pcall(lib.files.read, result.output)
-  if not success then
+function adapter.results(spec, result, tree)
+  local go_root = get_go_root(spec.context.file)
+  if not go_root then
     return {}
   end
-  local lines = vim.split(data, '\r\n')
-  local tests, log = marshal_gotest_output(lines, result.output)
+  local go_module = get_go_module_name(go_root)
+  if not go_module then
+    return {}
+  end
+
+  local success, lines = pcall(lib.files.read_lines, result.output)
+  if not success then
+    logger.error('neotest-go: could not read output: ' .. lines)
+    return {}
+  end
+
+  local tests, log = marshal_gotest_output(lines)
   local results = {}
   local no_results = vim.tbl_isempty(tests)
   local empty_result_fname
@@ -317,17 +471,20 @@ function adapter.results(_, result, tree)
         output = empty_result_fname,
       }
     else
-      local id_parts = vim.split(value.id, '::')
-      table.remove(id_parts, 1)
-      local test_output = tests[table.concat(id_parts, '/')]
-      if test_output then
+      local normalized_id = normalize_id(value.id, go_root, go_module)
+      local test_result = tests[normalized_id]
+      if test_result then
         local fname = async.fn.tempname()
-        fn.writefile(test_output.output, fname)
+        fn.writefile(test_result.output, fname)
         results[value.id] = {
-          status = test_output.status,
-          short = table.concat(test_output.output, '\n'),
+          status = test_result.status,
+          short = table.concat(test_result.output, ''),
           output = fname,
         }
+        local errors = get_errors_from_test(test_result, get_filename_from_id(value.id))
+        if errors then
+          results[value.id].errors = errors
+        end
       end
     end
   end
