@@ -135,6 +135,16 @@ local function normalize_test_name(package, test)
   return package .. '::' .. table.concat(parts, '::'), parenttest
 end
 
+--- Replaces first string occurance
+function string.replace(text, old, new)
+    local b,e = text:find(old,1,true)
+    if b==nil then
+        return text
+    else
+        return text:sub(1,b-1) .. new .. text:sub(e+1)
+    end
+end
+
 --- Converts from a given neotest id and go_root / go_module to format
 --- "package::test::subtest"
 ---@param id string
@@ -142,7 +152,7 @@ end
 ---@param go_module string
 ---@return string
 local function normalize_id(id, go_root, go_module)
-  local normalized_id, _ = id:gsub(go_root, go_module):gsub('/%w*_test.go', '')
+  local normalized_id, _ = id:replace(go_root, go_module):gsub('/[%w_-]*_test.go', '')
   return normalized_id
 end
 
