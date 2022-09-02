@@ -142,7 +142,8 @@ end
 ---@param go_module string
 ---@return string
 local function normalize_id(id, go_root, go_module)
-  local normalized_id, _ = id:gsub(vim.pesc(go_root), go_module):gsub('/%w*_test.go', '')
+  local root = async.fn.substitute(id, go_root, go_module, '')
+  local normalized_id, _ = root:gsub('/%w*_test.go', '')
   return normalized_id
 end
 
