@@ -143,7 +143,7 @@ end
 ---@return string
 local function normalize_id(id, go_root, go_module)
   local root = async.fn.substitute(id, go_root, go_module, '')
-  local normalized_id, _ = root:gsub('/%w*_test.go', '')
+  local normalized_id, _ = root:gsub('/[%w_-]*_test.go', '')
   return normalized_id
 end
 
@@ -151,7 +151,7 @@ end
 ---@param id string
 ---@return string
 local function get_filename_from_id(id)
-  local filename = string.match(id, '/(%w*_test.go)::')
+  local filename = string.match(id, '/([%w_-]*_test.go)::')
   return filename
 end
 
