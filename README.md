@@ -17,16 +17,16 @@ use({
     -- get neotest namespace (api call creates or returns namespace)
     local neotest_ns = vim.api.nvim_create_namespace("neotest")
     vim.diagnostic.config({
-    	virtual_text = {
-    		format = function(diagnostic)
-    			local message = diagnostic.message
-    				:gsub("\n", " ")
-    				:gsub("\t", " ")
-    				:gsub("%s+", " ")
-    				:gsub("^%s+", "")
-    			return message
-    		end,
-    	},
+      virtual_text = {
+        format = function(diagnostic)
+          local message = diagnostic.message
+          :gsub("\n", " ")
+          :gsub("\t", " ")
+          :gsub("%s+", " ")
+          :gsub("^%s+", "")
+          return message
+        end,
+      },
     }, neotest_ns)
     require('neotest').setup({
       ...,
@@ -38,10 +38,10 @@ use({
 })
 ```
 
-The above mentioned `vim.diagnostic.config` is optional but recommended if you 
+The above mentioned `vim.diagnostic.config` is optional but recommended if you
 enabled the `diagnostic` option of neotest. Especially [testify](https://github.com/stretchr/testify)
-makes heavy use of tabs and newlines in the error messages, which bloats the 
-generated virtual text otherwise.
+makes heavy use of tabs and newlines in the error messages, which reduces the readability of
+the generated virtual text otherwise.
 
 You can also supply optional arguments to the setup function if you want to
 enable experimental features or provide more arguments to `go test` command.
