@@ -305,7 +305,7 @@ end
 
 ---@param position neotest.Position The position to return an ID for
 ---@param namespaces neotest.Position[] Any namespaces the position is within
-local function generate_position_id(position, namespaces)
+function adapter._generate_position_id(position, namespaces)
   local prefix = {}
   for _, namespace in ipairs(namespaces) do
     if namespace.type ~= 'file' then
@@ -379,7 +379,7 @@ function adapter.discover_positions(path)
   return lib.treesitter.parse_positions(path, query, {
     require_namespaces = false,
     nested_tests = true,
-    position_id = generate_position_id,
+    position_id = "require('neotest-go')._generate_position_id",
   })
 end
 
