@@ -1,9 +1,9 @@
 local M = {}
 
-local color = require('neotest-go.output.color')
+local color = require('neotest-go.color')
 local patterns = require('neotest-go.patterns')
 local utils = require('neotest-go.utils')
-local test_statuses = require('neotest-go.status_options')
+local test_statuses = require('neotest-go.test_status')
 
 --- Removes `go test` specific prefixes
 --- For removing newlines / tabs / whitespaces to beautify diagnostic,
