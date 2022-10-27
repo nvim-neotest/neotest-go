@@ -23,7 +23,7 @@ end
 ---the final result
 ---@param lines string[]
 ---@return table, table
-function M.marshal_gotest_output(lines, opts)
+function M.marshal_gotest_output(lines)
   local tests = {}
   local log = {}
   local testfile, linenumber
@@ -32,11 +32,11 @@ function M.marshal_gotest_output(lines, opts)
       local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
       if not ok then
         log = vim.tbl_map(function(l)
-          return color.highlight_output(l, opts)
+          return color.highlight_output(l)
         end, lines)
         return tests, log
       end
-      local output = color.highlight_output(parsed.Output, opts)
+      local output = color.highlight_output(parsed.Output)
       if output then
         table.insert(log, output)
       else
