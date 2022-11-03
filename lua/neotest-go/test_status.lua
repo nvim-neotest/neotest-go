@@ -6,9 +6,9 @@ local test_statuses = {
   bench = false, -- the benchmark printed log output but did not fail
   output = false, -- the test printed output
   --------------------------------------------------
-  pass = 'passed', -- the test passed
-  fail = 'failed', -- the test or benchmark failed
-  skip = 'skipped', -- the test was skipped or the package contained no tests
+  pass = "passed", -- the test passed
+  fail = "failed", -- the test or benchmark failed
+  skip = "skipped", -- the test was skipped or the package contained no tests
 }
 
 return test_statuses

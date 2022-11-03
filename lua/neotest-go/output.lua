@@ -1,9 +1,9 @@
 local M = {}
 
-local color = require('neotest-go.color')
-local patterns = require('neotest-go.patterns')
-local utils = require('neotest-go.utils')
-local test_statuses = require('neotest-go.test_status')
+local color = require("neotest-go.color")
+local patterns = require("neotest-go.patterns")
+local utils = require("neotest-go.utils")
+local test_statuses = require("neotest-go.test_status")
 
 --- Removes `go test` specific prefixes
 --- For removing newlines / tabs / whitespaces to beautify diagnostic,
@@ -14,7 +14,7 @@ local function sanitize_output(output)
   if not output then
     return nil
   end
-  output = output:gsub(patterns.testfile, ''):gsub(patterns.testlog, '')
+  output = output:gsub(patterns.testfile, ""):gsub(patterns.testlog, "")
   return output
 end
 
@@ -28,7 +28,7 @@ function M.marshal_gotest_output(lines)
   local log = {}
   local testfile, linenumber
   for _, line in ipairs(lines) do
-    if line ~= '' then
+    if line ~= "" then
       local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
       if not ok then
         log = vim.tbl_map(function(l)
@@ -67,7 +67,7 @@ function M.marshal_gotest_output(lines)
 
           -- In our first error line we don't want empty lines (testify logs start with empty line (\n))
           local sanitized_output = sanitize_output(parsed.Output)
-          if sanitized_output and not sanitized_output:match('^%s*$') then
+          if sanitized_output and not sanitized_output:match("^%s*$") then
             tests[testname].file_output[testfile][linenumber] = {
               sanitize_output(parsed.Output),
             }
