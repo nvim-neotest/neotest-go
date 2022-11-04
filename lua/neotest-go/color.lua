@@ -82,7 +82,6 @@ end
 -- @param config table
 -- @param section string
 -- @return string
--- colorized = add_color(name, match_group, config, i)
 local function add_color(section, line, config, i)
   if fullcolor then
     local color = get_color(config, section, i, "gui")
