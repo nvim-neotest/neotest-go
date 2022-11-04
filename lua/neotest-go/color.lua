@@ -14,6 +14,17 @@ local function slice(tbl, first, last, step)
   return sliced
 end
 
+---Escape characters that have a special meaning in patterns
+---@param text string
+---@return string
+local function escape(text)
+  local special_chars = { "(", ")", "%", ".", "+", "-", "*", "[", "?", "^", "$" }
+  for _, char in pairs(special_chars) do
+    text = text:gsub("%" .. char, "%%" .. char)
+  end
+  return text
+end
+
 -- Function:	HEXtoRGB(arg)
 -- Argument:	Hex string value in the form '#cccccc' or 'cccccc'
 -- 						HEX shorthand is supported
@@ -115,7 +126,7 @@ function M.highlight_output(output, opts)
       -- Colorize all groups in pattern
       for i, match_group in ipairs(slice(res, 3)) do
         local colorized = add_color(name, match_group, config, i)
-        output = string.gsub(output, match_group, colorized)
+        output = string.gsub(output, escape(match_group), escape(colorized))
       end
     elseif #res > 0 then
       output = add_color(name, output, config)

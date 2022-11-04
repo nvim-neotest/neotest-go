@@ -10,13 +10,14 @@ local termcolors = {
 }
 
 local guicolors = {
-  pass = "#14D000",
-  fail = "#cc0000",
-  skip = "#729fcf",
-  file_name = "#20b2aa",
-  file_number = "#a474dc",
-  background = "#777777",
-  test_name = "#deb887",
+  green = "#14D000",
+  red = "#cc0000",
+  dark_blue = "#729fcf",
+  cyan = "#20b2aa",
+  magenta = "#a474dc",
+  grey = "#777777",
+  yellow = "#deb887",
+  orange = "#ff7373",
 }
 
 local patterns = {
@@ -25,34 +26,58 @@ local patterns = {
   error = { "error" },
   -- Patterns to colorize in output
   colors = {
+    pass = { pattern = "^---%s+PASS:", gui = guicolors.green, term = termcolors.red },
+    fail = { pattern = "^---%s+FAIL:", gui = guicolors.red, term = termcolors.green },
+    skip = { pattern = "^---%s+SKIP:", gui = guicolors.dark_blue, term = termcolors.yellow },
     run = {
       pattern = "^(===%s+RUN)%s+(.*)",
-      gui = { guicolors.background, guicolors.test_name },
+      gui = { guicolors.grey, guicolors.yellow },
       term = { termcolors.blue, termcolors.blue },
     },
+    signal = {
+      pattern = "^(%[signal)%s(.*)(:.*%])",
+      gui = { guicolors.grey, guicolors.dark_blue, guicolors.grey },
+      term = { termcolors.blue, termcolors.red, termcolors.blue },
+    },
+    panic = {
+      pattern = "^%s+(panic:)%s+(.*)",
+      gui = { guicolors.red, guicolors.orange },
+      term = { termcolors.red, termcolors.red },
+    },
+    panic_recovered = {
+      pattern = "^(panic:)%s+(.*)%s(%[.*%])",
+      gui = { guicolors.red, guicolors.orange, guicolors.dark_blue },
+      term = { termcolors.red, termcolors.red, termcolors.blue },
+    },
+    go_routine = {
+      pattern = "^(goroutine)%s(%d+)%s(%[.*])(:)",
+      gui = { guicolors.grey, guicolors.magenta, guicolors.dark_blue, guicolors.grey },
+      term = { termcolors.blue, termcolors.blue, termcolors.magenta, termcolors.blue },
+    },
     file = {
-      pattern = "^%s+(.*.go)(:%d+):",
-      gui = { guicolors.file_name, guicolors.file_number },
+      pattern = "^%s+(.*.go)(:%d+)",
+      gui = { guicolors.cyan, guicolors.magenta },
       term = { termcolors.cyan, termcolors.magenta },
     },
-    pass = { pattern = "^---%s+PASS:", gui = guicolors.pass, term = termcolors.red },
-    fail = { pattern = "^---%s+FAIL:", gui = guicolors.fail, term = termcolors.green },
-    skip = { pattern = "^---%s+SKIP:", gui = guicolors.skip, term = termcolors.yellow },
-
+    file_panic = {
+      pattern = "^%s+(.*.go)(:%d+)%s+(%+0x%w+)",
+      gui = { guicolors.cyan, guicolors.magenta, guicolors.grey },
+      term = { termcolors.cyan, termcolors.magenta, termcolors.blue },
+    },
     -- Color erorr messages from github.com/stretchr/testify
     testify_error_trace = {
       pattern = "^%s+(Error Trace:)%s+(.*)",
-      gui = { guicolors.background, guicolors.background },
+      gui = { guicolors.grey, guicolors.grey },
       term = { termcolors.yellow, termcolors.blue },
     },
     testify_error = {
       pattern = "^%s+(Error:)%s+(.*)",
-      gui = { guicolors.fail, guicolors.fail },
+      gui = { guicolors.red, guicolors.red },
       term = { termcolors.yellow, termcolors.yellow },
     },
     testify_test = {
       pattern = "^%s+(Test:)%s+(.*)",
-      gui = { guicolors.background, guicolors.test_name },
+      gui = { guicolors.grey, guicolors.yellow },
       term = { termcolors.blue, termcolors.blue },
     },
   },
