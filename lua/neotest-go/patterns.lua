@@ -26,7 +26,7 @@ local patterns = {
   error = { "error" },
   -- Patterns to colorize in output
   colors = {
-    pass = { pattern = "^---%s+PASS:", gui = guicolors.green, term = termcolors.red },
+    pass = { pattern = "^%s*---%s+PASS:", gui = guicolors.green, term = termcolors.red },
     fail = { pattern = "^---%s+FAIL:", gui = guicolors.red, term = termcolors.green },
     skip = { pattern = "^---%s+SKIP:", gui = guicolors.dark_blue, term = termcolors.yellow },
     run = {
