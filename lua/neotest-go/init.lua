@@ -182,6 +182,7 @@ function adapter.results(spec, result, tree)
     empty_result_fname = async.fn.tempname()
     fn.writefile(log, empty_result_fname)
   end
+  local tree_copy = vim.deepcopy(tree)
   for _, node in tree:iter_nodes() do
     local value = node:data()
     if no_results then
@@ -192,7 +193,18 @@ function adapter.results(spec, result, tree)
     else
       local normalized_id = utils.normalize_id(value.id, go_root, go_module)
       local test_result = tests[normalized_id]
+      -- Get file output by concatenating all test outputs
+      if value.type == "file" then
+        local get_id = function(id)
+          return utils.normalize_id(id, go_root, go_module)
+        end
+        test_result = output.get_file_output(value.id, tree_copy, tests, get_id)
+      end
       if test_result then
+        if test_result.build_message then
+          test_result.output =
+            output.prepend_build_message(test_result.build_message, test_result.output)
+        end
         local fname = async.fn.tempname()
         fn.writefile(test_result.output, fname)
         results[value.id] = {
