@@ -6,26 +6,7 @@ local colors_patterns = require("neotest-go.patterns").colors
 local term = os.getenv("COLORTERM")
 local fullcolor = (term == "truecolor") or (term == "24bit")
 
-local function slice(tbl, first, last, step)
-  local sliced = {}
-  for i = first or 1, last or #tbl, step or 1 do
-    sliced[#sliced + 1] = tbl[i]
-  end
-  return sliced
-end
-
----Escape characters that have a special meaning in patterns
----@param text string
----@return string
-local function escape(text)
-  local special_chars = { "(", ")", "%", ".", "+", "-", "*", "[", "?", "^", "$" }
-  for _, char in pairs(special_chars) do
-    text = text:gsub("%" .. char, "%%" .. char)
-  end
-  return text
-end
-
--- Function:	HEXtoRGB(arg)
+-- Function:	hex_to_rgb(arg)
 -- Argument:	Hex string value in the form '#cccccc' or 'cccccc'
 -- 						HEX shorthand is supported
 -- Returns:		Three RGB values
@@ -33,7 +14,7 @@ end
 -- 						Green value from 0-255
 -- 						Blue value from 0-255
 -- Source:    forum.rainmeter.net/viewtopic.php?t=29419
-local function HEXtoRGB(hexArg)
+local function hex_to_rgb(hexArg)
   hexArg = hexArg:gsub("#", "")
   if string.len(hexArg) == 3 then
     return tonumber("0x" .. hexArg:sub(1, 1)) * 17,
@@ -72,7 +53,7 @@ end
 -- @param hex_color string
 -- @return string
 local function add_24bit_color(line, hex_color)
-  local r, g, b = HEXtoRGB(hex_color)
+  local r, g, b = hex_to_rgb(hex_color)
   local start_code = fmt("[38;2;%d;%d;%dm", r, g, b)
   local end_code = "[0m"
   return start_code .. line .. end_code
@@ -119,14 +100,14 @@ function M.highlight_output(output, opts)
   if is_table(opts) and opts.colors ~= nil then
     config = opts.colors
   end
-  -- Itterate over all patterns to colorize
+  -- Iterate over all patterns to colorize
   for name, c in pairs(colors_patterns) do
-    local res = { string.find(output, c.pattern) }
+    local res = { output:find(c.pattern) }
     if #res > 2 then
       -- Colorize all groups in pattern
-      for i, match_group in ipairs(slice(res, 3)) do
+      for i, match_group in ipairs(vim.list_slice(res, 3)) do
         local colorized = add_color(name, match_group, config, i)
-        output = string.gsub(output, escape(match_group), escape(colorized))
+        output = output:gsub(vim.pesc(match_group), vim.pesc(colorized))
       end
     elseif #res > 0 then
       output = add_color(name, output, config)
