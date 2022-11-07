@@ -5,6 +5,8 @@ local patterns = require("neotest-go.patterns")
 local utils = require("neotest-go.utils")
 local test_statuses = require("neotest-go.test_status")
 
+local build_header = "=== BUILD"
+
 --- Removes `go test` specific prefixes
 --- For removing newlines / tabs / whitespaces to beautify diagnostic,
 --- vim.diagnostic.config(virtual_text.format) should be used
@@ -27,21 +29,22 @@ function M.marshal_gotest_output(lines)
   local tests = {}
   local log = {}
   local testfile, linenumber
+  local build_message = { color.highlight_output(build_header) }
   for _, line in ipairs(lines) do
+    local output
     if line ~= "" then
       local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
       if not ok then
-        log = vim.tbl_map(function(l)
-          return color.highlight_output(l)
-        end, lines)
-        return tests, log
-      end
-      local output = color.highlight_output(parsed.Output)
-      if output then
-        table.insert(log, output)
+        table.insert(build_message, color.highlight_output(line))
       else
-        testfile, linenumber = nil, nil
+        output = color.highlight_output(parsed.Output)
+        if output then
+          table.insert(log, output)
+        else
+          testfile, linenumber = nil, nil
+        end
       end
+
       local action, package, test = parsed.Action, parsed.Package, parsed.Test
       if test then
         local status = test_statuses[action]
@@ -97,6 +100,19 @@ function M.marshal_gotest_output(lines)
       end
     end
   end
+
+  -- Add build message if present
+  if #build_message > 1 then
+    for _, test in pairs(tests) do
+      local output = vim.deepcopy(build_message)
+      table.insert(output, "[10")
+      vim.tbl_map(function(l)
+        table.insert(output, l)
+      end, test.output)
+      test.output = output
+    end
+  end
+
   return tests, log
 end
 
