@@ -29,6 +29,8 @@ local patterns = {
     pass = { pattern = "^%s*---%s+PASS:", gui = guicolors.green, term = termcolors.red },
     fail = { pattern = "^---%s+FAIL:", gui = guicolors.red, term = termcolors.green },
     skip = { pattern = "^---%s+SKIP:", gui = guicolors.dark_blue, term = termcolors.yellow },
+    build = { pattern = "^===%s+BUILD", gui = guicolors.yellow, term = termcolors.yellow },
+    comment = { pattern = "^#", gui = guicolors.grey, term = termcolors.blue },
     run = {
       pattern = "^(===%s+RUN)%s+(.*)",
       gui = { guicolors.grey, guicolors.yellow },
@@ -58,6 +60,11 @@ local patterns = {
       pattern = "^%s+(.*.go)(:%d+)",
       gui = { guicolors.cyan, guicolors.magenta },
       term = { termcolors.cyan, termcolors.magenta },
+    },
+    file_column = {
+      pattern = "^%s*(.*.go)(:%d+)(:%d+)",
+      gui = { guicolors.cyan, guicolors.magenta, guicolors.dark_blue },
+      term = { termcolors.cyan, termcolors.magenta, termcolors.blue },
     },
     file_panic = {
       pattern = "^%s+(.*.go)(:%d+)%s+(%+0x%w+)",
