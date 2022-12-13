@@ -80,7 +80,7 @@ function adapter.discover_positions(path)
             (literal_value
               (literal_element
                 (literal_value
-                  (keyed_element
+                  .(keyed_element
                     (literal_element
                       (identifier) @test.field.name)
                     (literal_element
