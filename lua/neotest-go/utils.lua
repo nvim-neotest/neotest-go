@@ -111,9 +111,12 @@ function utils.get_go_module_name(go_root)
     logger.error("neotest-go: couldn't read go.mod file: " .. gomodule)
     return
   end
-  local line = gomodule[1]
-  local module = line:match("module (.+)")
-  return module
+  for _, line in pairs(gomodule) do
+      local module = line:match("module (.+)")
+      if module then
+        return module
+      end
+  end
 end
 
 --- Extracts the file name from a neotest id
