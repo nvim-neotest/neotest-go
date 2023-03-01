@@ -5,6 +5,8 @@ local patterns = require("neotest-go.patterns")
 local utils = require("neotest-go.utils")
 local test_statuses = require("neotest-go.test_status")
 
+local build_header = "=== BUILD"
+
 --- Removes `go test` specific prefixes
 --- For removing newlines / tabs / whitespaces to beautify diagnostic,
 --- vim.diagnostic.config(virtual_text.format) should be used
@@ -18,6 +20,17 @@ local function sanitize_output(output)
   return output
 end
 
+---Escape characters that have a special meaning in patterns
+---@param text string
+---@return string
+local function escape(text)
+  local special_chars = { "(", ")", "%", ".", "+", "-", "*", "[", "?", "^", "$" }
+  for _, char in pairs(special_chars) do
+    text = text:gsub("%" .. char, "%%" .. char)
+  end
+  return text
+end
+
 ---Convert the json output from `gotest` to an intermediate format more similar to
 ---neogit.Result. Collect the progress of each test into a subtable and add a field for
 ---the final result
@@ -27,21 +40,22 @@ function M.marshal_gotest_output(lines)
   local tests = {}
   local log = {}
   local testfile, linenumber
+  local build_message = { color.highlight_output(build_header) }
   for _, line in ipairs(lines) do
+    local output
     if line ~= "" then
       local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
       if not ok then
-        log = vim.tbl_map(function(l)
-          return color.highlight_output(l)
-        end, lines)
-        return tests, log
-      end
-      local output = color.highlight_output(parsed.Output)
-      if output then
-        table.insert(log, output)
+        table.insert(build_message, color.highlight_output(line))
       else
-        testfile, linenumber = nil, nil
+        output = color.highlight_output(parsed.Output)
+        if output then
+          table.insert(log, output)
+        else
+          testfile, linenumber = nil, nil
+        end
       end
+
       local action, package, test = parsed.Action, parsed.Package, parsed.Test
       if test then
         local status = test_statuses[action]
@@ -52,6 +66,7 @@ function M.marshal_gotest_output(lines)
             output = {},
             progress = {},
             file_output = {},
+            build_message = {},
           }
         end
 
@@ -94,10 +109,68 @@ function M.marshal_gotest_output(lines)
             table.insert(tests[parenttestname].output, output)
           end
         end
+        if #build_message > 1 then
+          tests[testname].build_message = vim.deepcopy(build_message)
+        end
       end
     end
   end
+
   return tests, log
+end
+
+---Prepend a build message to the test output
+---@param build_message string[]
+---@param result string[]
+---@return string[]
+function M.prepend_build_message(build_message, result)
+  local output = vim.deepcopy(result)
+  if build_message and #build_message > 0 then
+    output = vim.deepcopy(build_message)
+    table.insert(output, "[10")
+    vim.tbl_map(function(l)
+      table.insert(output, l)
+    end, result)
+  end
+  return output
+end
+
+---Construct the test result of a file by concatenating all individual test results
+---@param file string
+---@param tree neotest.Tree
+---@param tests table
+---@param get_id function
+---@return table
+function M.get_file_output(file, tree, tests, get_id)
+  local pattern = "^" .. escape(file)
+  local file_result = {
+    output = {},
+    file_output = {},
+    build_message = {},
+    status = "passed",
+  }
+  for _, node in tree:iter_nodes() do
+    local value = node:data()
+    local test = tests[get_id(value.id)]
+    if value.type == "test" and string.match(value.id, pattern) and test and test.output then
+      -- add newline if not the first result
+      if #file_result.output > 0 then
+        table.insert(file_result.output, "[10")
+      end
+      -- add test output
+      vim.tbl_map(function(l)
+        table.insert(file_result.output, l)
+      end, test.output)
+      -- store build message
+      if test.build_message then
+        file_result.build_message = test.build_message
+      end
+      if value.status == "failed" then
+        file_result.status = "failed"
+      end
+    end
+  end
+  return file_result
 end
 
 return M
