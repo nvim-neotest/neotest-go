@@ -1,0 +1,15 @@
+name: Neotest-go GitHub Actions
+on:
+  [pull_request, workflow_dispatch]
+jobs:
+  check-formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v3
+      - name: Check formatting
+        uses: JohnnyMorganz/stylua-action@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest # NOTE: we recommend pinning to a specific version in case of formatting changes
+          args: --check .

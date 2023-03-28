@@ -112,10 +112,10 @@ function utils.get_go_module_name(go_root)
     return
   end
   for _, line in pairs(gomodule) do
-      local module = line:match("module (.+)")
-      if module then
-        return module
-      end
+    local module = line:match("module (.+)")
+    if module then
+      return module
+    end
   end
 end
 

@@ -143,7 +143,6 @@ function adapter.build_spec(args)
     vim.list_extend(get_args(), args.extra_args or {}),
     unpack(cmd_args),
   })
-
   return {
     command = table.concat(command, " "),
     context = {
@@ -173,15 +172,21 @@ function adapter.results(spec, result, tree)
     logger.error("neotest-go: could not read output: " .. lines)
     return {}
   end
+  return adapter.prepare_results(tree, lines, go_root, go_module)
+end
 
-  local tests, log = output.marshal_gotest_output(lines, get_args())
+---@param tree neotest.Tree
+---@param lines string[]
+---@param go_root string
+---@param go_module string
+---@return table<string, neotest.Result[]>
+function adapter.prepare_results(tree, lines, go_root, go_module)
+  local tests, log = output.marshal_gotest_output(lines)
   local results = {}
   local no_results = vim.tbl_isempty(tests)
   local empty_result_fname
-  if no_results then
-    empty_result_fname = async.fn.tempname()
-    fn.writefile(log, empty_result_fname)
-  end
+  empty_result_fname = async.fn.tempname()
+  fn.writefile(log, empty_result_fname)
   for _, node in tree:iter_nodes() do
     local value = node:data()
     if no_results then
@@ -192,6 +197,13 @@ function adapter.results(spec, result, tree)
     else
       local normalized_id = utils.normalize_id(value.id, go_root, go_module)
       local test_result = tests[normalized_id]
+      -- file level node
+      if not test_result then
+        results[value.id] = {
+          status = test_statuses.fail,
+          output = empty_result_fname,
+        }
+      end
       if test_result then
         local fname = async.fn.tempname()
         fn.writefile(test_result.output, fname)
