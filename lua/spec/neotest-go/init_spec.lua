@@ -1,6 +1,6 @@
-local async = require("plenary.async.tests")
+local nio = require("nio")
+local async = nio.tests
 local plugin = require("neotest-go")
-local lib = require("neotest.lib")
 local assert = require("luassert")
 local say = require("say")
 
