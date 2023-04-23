@@ -3,6 +3,7 @@ local async = nio.tests
 local plugin = require("neotest-go")
 local assert = require("luassert")
 local say = require("say")
+local test_statuses = require("neotest-go.test_status")
 
 local function create_tree(positions)
   return Tree.from_list(positions, function(pos)
@@ -192,8 +193,8 @@ describe("prepare_results", function()
   async.it(
     "check that we have file level test result as well as all nested results in cases_test.go",
     function()
-      local tests_folder = vim.loop.cwd() .. "/neotest_go/"
-      local test_file = tests_folder .. "cases_test.go"
+      local tests_folder = vim.loop.cwd() .. "/neotest_go"
+      local test_file = tests_folder .. "/cases_test.go"
       local positions = plugin.discover_positions(test_file)
 
       local expected_keys = {
@@ -227,12 +228,49 @@ describe("prepare_results", function()
       for s in result:gmatch("[^\r\n]+") do
         table.insert(lines, s)
       end
-      local processed_results =
-        plugin.prepare_results(positions, lines, tests_folder .. "...", "neotest_go")
+      local processed_results = plugin.prepare_results(positions, lines, tests_folder, "neotest_go")
 
       for _, v in pairs(expected_keys) do
         assert.has_property(v, processed_results)
       end
     end
   )
+  async.it("check that we have correct file level test result status", function()
+    local tests_folder = vim.loop.cwd() .. "/neotest_go"
+    local test_cases = {}
+    test_cases["cases_test.go"] = { status = test_statuses.fail }
+    test_cases["main_test.go"] = { status = test_statuses.pass }
+    for test_name, test_result in pairs(test_cases) do
+      async.it(test_name, function()
+        local test_file = tests_folder .. "/" .. test_name
+        local positions = plugin.discover_positions(test_file)
+        -- we should run test from module root
+        local command = {
+          "cd",
+          tests_folder,
+          "&&",
+          "go",
+          "test",
+          "-v",
+          "-json",
+          "",
+          "-count=1",
+          "-timeout=60s",
+          "./...",
+        }
+        local handle = io.popen(table.concat(command, " "))
+        local result = handle:read("*a")
+        handle:close()
+
+        local lines = {}
+        for s in result:gmatch("[^\r\n]+") do
+          table.insert(lines, s)
+        end
+        local processed_results =
+          plugin.prepare_results(positions, lines, tests_folder, "neotest_go")
+
+        assert.equals(test_result.status, processed_results[test_file].status)
+      end)
+    end
+  end)
 end)
