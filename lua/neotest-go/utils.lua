@@ -70,6 +70,16 @@ function utils.is_test_logoutput(line)
   return line and line:match(patterns.testlog) ~= nil
 end
 
+local function is_valid_tag(tag)
+  local not_valid_tag_symbols = { "!", "|", "&" }
+  for _, symbol in pairs(not_valid_tag_symbols) do
+    if tag:find(symbol) then
+      return false
+    end
+  end
+  return true
+end
+
 ---@return string
 function utils.get_build_tags()
   local line = get_buf_line(0)
@@ -83,6 +93,11 @@ function utils.get_build_tags()
     return ""
   end
   local tags = vim.split(line:gsub(tag_format, ""), " ")
+  for i = #tags, 1, -1 do
+    if not is_valid_tag(tags[i]) then
+      table.remove(tags, i)
+    end
+  end
   if #tags < 1 then
     return ""
   end
