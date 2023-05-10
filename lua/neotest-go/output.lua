@@ -14,7 +14,16 @@ local function sanitize_output(output)
   if not output then
     return nil
   end
-  output = output:gsub(patterns.testfile, ""):gsub(patterns.testlog, "")
+
+  for _, pattern in ipairs({
+    patterns.testfile,
+    patterns.testify_assert_file,
+    patterns.testify_callstack_testfile,
+    patterns.testlog,
+  }) do
+    output = output:gsub(pattern, "")
+  end
+
   return output
 end
 
@@ -69,7 +78,7 @@ function M.marshal_gotest_output(lines)
           local sanitized_output = sanitize_output(parsed.Output)
           if sanitized_output and not sanitized_output:match("^%s*$") then
             tests[testname].file_output[testfile][linenumber] = {
-              sanitize_output(parsed.Output),
+              sanitized_output,
             }
           else
             tests[testname].file_output[testfile][linenumber] = {}
@@ -78,6 +87,10 @@ function M.marshal_gotest_output(lines)
 
         -- if we are in the context of a file, collect the logged data
         if testfile and linenumber and utils.is_test_logoutput(parsed.Output) then
+          if not tests[testname].file_output[testfile] then
+            tests[testname].file_output[testfile] = { [linenumber] = {} }
+          end
+
           table.insert(
             tests[testname].file_output[testfile][linenumber],
             sanitize_output(parsed.Output)

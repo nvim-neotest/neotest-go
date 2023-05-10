@@ -219,8 +219,11 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
         if errors then
           results[value.id].errors = errors
         end
-        if test_result.status == test_statuses.fail and file_id then
-          results[file_id].status = test_statuses.fail
+        if test_result.status == test_statuses.fail then
+          if file_id ~= nil then
+            -- when executing a function there may be no file_id
+            results[file_id].status = test_statuses.fail
+          end
         end
       end
     end

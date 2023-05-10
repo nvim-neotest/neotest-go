@@ -133,8 +133,34 @@ end
 ---@return string?, number?
 function utils.get_test_file_info(line)
   if line then
-    local file, linenumber = string.match(line, patterns.testfile)
-    return file, tonumber(linenumber)
+    for _, pattern in ipairs({
+      patterns.testfile,
+      patterns.testify_assert_file,
+    }) do
+      local file, linenumber = string.match(line, pattern)
+      if file and linenumber then
+        return file, tonumber(linenumber)
+      end
+    end
+
+    -- testify will sometimes return errors as a callstack with the format
+    -- at: [/some-package/file.go:104 /my-package/my_test.go:933]\n
+    local last_file = nil
+    local last_linenumber = nil
+
+    for callstack in string.gmatch(line, "%[(.-)%]") do
+      for frame in string.gmatch(callstack, "%S+") do
+        local file, linenumber = string.match(frame, "([^/]*._test%.go):(%d+)")
+        if file and linenumber then
+          last_file = file
+          last_linenumber = linenumber
+        end
+      end
+    end
+
+    if last_file and last_linenumber then
+      return last_file, tonumber(last_linenumber)
+    end
   end
   return nil, nil
 end
