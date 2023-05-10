@@ -219,7 +219,7 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
         if errors then
           results[value.id].errors = errors
         end
-        if test_result.status == test_statuses.fail then
+        if test_result.status == test_statuses.fail and file_id then
           results[file_id].status = test_statuses.fail
         end
       end
