@@ -185,7 +185,6 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
   local results = {}
   local no_results = vim.tbl_isempty(tests)
   local empty_result_fname
-  local file_id
   empty_result_fname = async.fn.tempname()
   fn.writefile(log, empty_result_fname)
   for _, node in tree:iter_nodes() do
@@ -197,37 +196,43 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
       }
       break
     end
-    if value.type == "file" then
-      results[value.id] = {
-        status = test_statuses.pass,
-        output = empty_result_fname,
-      }
-      file_id = value.id
-    else
-      local normalized_id = utils.normalize_id(value.id, go_root, go_module)
+
+    if value.type ~= "file" then
+      local test_id = value.id
+      local file_path = value.path
+      local file_id = utils.get_filename_from_id(test_id)
+      local normalized_id = utils.normalize_id(test_id, go_root, go_module)
       local test_result = tests[normalized_id]
+
+      if not results[file_path] then
+        results[file_path] = {
+          status = test_statuses.pass,
+          output = empty_result_fname,
+        }
+      end
+
       -- file level node
       if test_result then
         local fname = async.fn.tempname()
         fn.writefile(test_result.output, fname)
-        results[value.id] = {
+        results[test_id] = {
           status = test_result.status,
           short = table.concat(test_result.output, ""),
           output = fname,
         }
-        local errors = utils.get_errors_from_test(test_result, utils.get_filename_from_id(value.id))
+
+        local errors = utils.get_errors_from_test(test_result, file_id)
         if errors then
-          results[value.id].errors = errors
+          results[test_id].errors = errors
         end
+
         if test_result.status == test_statuses.fail then
-          if file_id ~= nil then
-            -- when executing a function there may be no file_id
-            results[file_id].status = test_statuses.fail
-          end
+          results[file_path].status = test_statuses.fail
         end
       end
     end
   end
+
   return results
 end
 

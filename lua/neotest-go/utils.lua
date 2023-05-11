@@ -67,7 +67,7 @@ end
 ---@param line string
 ---@return boolean
 function utils.is_test_logoutput(line)
-  return line and line:match(patterns.testlog) ~= nil
+  return line and line:match(patterns.testlog)
 end
 
 ---@return string
