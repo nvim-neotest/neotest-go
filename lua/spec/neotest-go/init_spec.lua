@@ -116,6 +116,7 @@ describe("discover_positions", function()
         },
       },
     }
+
     assert.are.same(positions, expected_positions)
   end)
   async.it("discovers positions in unit tests in cases_test.go", function()
@@ -126,7 +127,7 @@ describe("discover_positions", function()
         id = vim.loop.cwd() .. "/neotest_go/cases_test.go",
         name = "cases_test.go",
         path = vim.loop.cwd() .. "/neotest_go/cases_test.go",
-        range = { 0, 0, 49, 0 },
+        range = { 0, 0, 69, 0 },
         type = "file",
       },
       {
@@ -183,6 +184,42 @@ describe("discover_positions", function()
           },
         },
       },
+      {
+        {
+          id = vim.loop.cwd() .. "/neotest_go/cases_test.go::TestOuter",
+          name = "TestOuter",
+          path = vim.loop.cwd() .. "/neotest_go/cases_test.go",
+          range = { 50, 0, 52, 1 },
+          type = "test",
+        },
+      },
+      {
+        {
+          id = vim.loop.cwd() .. "/neotest_go/cases_test.go::testAddValues",
+          name = '"testAddValues"',
+          path = vim.loop.cwd() .. "/neotest_go/cases_test.go",
+          range = { 55, 1, 63, 3 },
+          type = "test",
+        },
+        {
+          {
+            id = vim.loop.cwd() .. '/neotest_go/cases_test.go::"testAddValues"::testAdd2',
+            name = '"testAdd2"',
+            path = vim.loop.cwd() .. "/neotest_go/cases_test.go",
+            range = { 56, 2, 58, 4 },
+            type = "test",
+          },
+        },
+        {
+          {
+            id = vim.loop.cwd() .. '/neotest_go/cases_test.go::"testAddValues"::testAdd5',
+            name = '"testAdd5"',
+            path = vim.loop.cwd() .. "/neotest_go/cases_test.go",
+            range = { 60, 2, 62, 4 },
+            type = "test",
+          },
+        },
+      },
     }
 
     assert.are.same(positions, expected_positions)
@@ -202,6 +239,11 @@ describe("prepare_results", function()
         test_file .. "::TestAdd",
         test_file .. "::TestAdd::test_one",
         test_file .. "::TestAdd::test_two",
+        test_file .. "::TestAdd::string",
+        test_file .. "::TestOuter",
+        test_file .. "::TestOuter::testAddValues",
+        test_file .. "::TestOuter::testAddValues::testAdd2",
+        test_file .. "::TestOuter::testAddValues::testAdd5",
         test_file .. "::TestSubtract",
         test_file .. "::TestSubtract::test_one",
         test_file .. "::TestSubtract::test_two",
@@ -228,6 +270,7 @@ describe("prepare_results", function()
       for s in result:gmatch("[^\r\n]+") do
         table.insert(lines, s)
       end
+
       local processed_results = plugin.prepare_results(positions, lines, tests_folder, "neotest_go")
 
       for _, v in pairs(expected_keys) do

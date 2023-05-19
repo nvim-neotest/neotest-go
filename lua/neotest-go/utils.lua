@@ -135,7 +135,8 @@ function utils.get_test_file_info(line)
   if line then
     for _, pattern in ipairs({
       patterns.testfile,
-      patterns.testify_assert_file,
+      patterns.testify_assert_error_file,
+      patterns.testify_assert_error_trace,
     }) do
       local file, linenumber = string.match(line, pattern)
       if file and linenumber then

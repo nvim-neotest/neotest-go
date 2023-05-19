@@ -47,3 +47,23 @@ func TestAdd(t *testing.T) {
 		assert.Equal(t, 3, add(1, 2))
 	})
 }
+
+func TestOuter(t *testing.T) {
+	testInnerHelper(t)
+}
+
+func testInnerHelper(t *testing.T) {
+	t.Run("testAddValues", func(t *testing.T) {
+		t.Run("testAdd2", func(t *testing.T) {
+			testAddValues(t, 1, 2)
+		})
+
+		t.Run("testAdd5", func(t *testing.T) {
+			testAddValues(t, 0, 5)
+		})
+	})
+}
+
+func testAddValues(t *testing.T, want, num int) {
+	assert.Equal(t, want, addOne(num))
+}

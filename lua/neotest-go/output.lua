@@ -61,6 +61,8 @@ function M.marshal_gotest_output(lines)
             output = {},
             progress = {},
             file_output = {},
+            parenttestname = parenttestname,
+            test = test,
           }
         end
 
@@ -88,6 +90,10 @@ function M.marshal_gotest_output(lines)
         -- if we are in the context of a file, collect the logged data
         if testfile and linenumber and utils.is_test_logoutput(parsed.Output) then
           if not tests[testname].file_output[testfile] then
+            tests[testname].file_output[testfile] = { [linenumber] = {} }
+          end
+
+          if not tests[testname].file_output[testfile][linenumber] then
             tests[testname].file_output[testfile] = { [linenumber] = {} }
           end
 

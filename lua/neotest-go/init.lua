@@ -188,46 +188,61 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
   empty_result_fname = async.fn.tempname()
   fn.writefile(log, empty_result_fname)
   for _, node in tree:iter_nodes() do
-    local value = node:data()
+    local node_data = node:data()
     if no_results then
-      results[value.id] = {
+      results[node_data.id] = {
         status = test_statuses.fail,
         output = empty_result_fname,
       }
       break
     end
 
-    if value.type ~= "file" then
-      local test_id = value.id
-      local file_path = value.path
-      local file_id = utils.get_filename_from_id(test_id)
-      local normalized_id = utils.normalize_id(test_id, go_root, go_module)
-      local test_result = tests[normalized_id]
+    if node_data.type ~= "file" then
+      local file_path = node_data.path
+      local file_id = utils.get_filename_from_id(node_data.id)
+      local normalized_node_test_id = utils.normalize_id(node_data.id, go_root, go_module)
+      local node_test_result = tests[normalized_node_test_id]
 
-      if not results[file_path] then
-        results[file_path] = {
-          status = test_statuses.pass,
-          output = empty_result_fname,
-        }
-      end
-
-      -- file level node
-      if test_result then
-        local fname = async.fn.tempname()
-        fn.writefile(test_result.output, fname)
-        results[test_id] = {
-          status = test_result.status,
-          short = table.concat(test_result.output, ""),
-          output = fname,
-        }
-
-        local errors = utils.get_errors_from_test(test_result, file_id)
-        if errors then
-          results[test_id].errors = errors
+      if node_test_result then
+        if not results[file_path] then
+          results[file_path] = {
+            status = test_statuses.pass,
+            output = empty_result_fname,
+          }
         end
 
-        if test_result.status == test_statuses.fail then
-          results[file_path].status = test_statuses.fail
+        local node_fname = async.fn.tempname()
+        fn.writefile(node_test_result.output, node_fname)
+        results[node_data.id] = {
+          status = node_test_result.status,
+          short = table.concat(node_test_result.output, ""),
+          output = node_fname,
+          errors = {},
+        }
+
+        for _, test_result in pairs(tests) do
+          if test_result.parenttestname == normalized_node_test_id then
+            local test_id, _ = utils.normalize_test_name(file_path, test_result.test)
+            local test_fname = async.fn.tempname()
+            fn.writefile(test_result.output, test_fname)
+            results[test_id] = {
+              status = test_result.status,
+              short = table.concat(test_result.output, ""),
+              output = test_fname,
+              errors = {},
+            }
+
+            local errors = utils.get_errors_from_test(test_result, file_id)
+            if errors then
+              for _, error in ipairs(errors) do
+                table.insert(results[node_data.id].errors, error)
+              end
+            end
+
+            if test_result.status == test_statuses.fail then
+              results[file_path].status = test_statuses.fail
+            end
+          end
         end
       end
     end
