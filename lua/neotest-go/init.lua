@@ -70,7 +70,7 @@ function adapter.discover_positions(path)
   if get_experimental_opts().test_table then
     query = query
       .. [[
-;; query
+;; query for list table tests
     (block
       (short_var_declaration
         left: (expression_list
@@ -80,7 +80,7 @@ function adapter.discover_positions(path)
             (literal_value
               (literal_element
                 (literal_value
-                  .(keyed_element
+                  (keyed_element
                     (literal_element
                       (identifier) @test.field.name)
                     (literal_element
@@ -102,6 +102,35 @@ function adapter.discover_positions(path)
                 (#eq? @test.case @test.case1)
                 field: (field_identifier) @test.field.name1
                 (#eq? @test.field.name @test.field.name1)))))))
+
+;; query for map table tests 
+	(block
+      (short_var_declaration
+        left: (expression_list
+          (identifier) @test.cases)
+        right: (expression_list
+          (composite_literal
+            (literal_value
+              (keyed_element
+            	(literal_element
+                  (interpreted_string_literal)  @test.name)
+                (literal_element
+                  (literal_value)  @test.definition))))))
+	  (for_statement
+       (range_clause
+          left: (expression_list
+            ((identifier) @test.key.name)
+            ((identifier) @test.case))
+          right: (identifier) @test.cases1
+            (#eq? @test.cases @test.cases1))
+	      body: (block
+            (call_expression
+              function: (selector_expression
+                field: (field_identifier) @test.method)
+                (#match? @test.method "^Run$")
+                arguments: (argument_list
+                ((identifier) @test.key.name1
+                (#eq? @test.key.name @test.key.name1)))))))
     ]]
   end
 
