@@ -333,3 +333,20 @@ describe("prepare_results", function()
     end
   end)
 end)
+
+describe("build_spec", function()
+  async.it("build specification for many_table_test.go", function()
+    local path = vim.loop.cwd() .. "/neotest_go/many_table_test.go"
+    local tree = plugin.discover_positions(path)
+
+    local args = { tree = tree }
+    local expected_command = "cd "
+      .. vim.loop.cwd()
+      .. "/neotest_go && go test -v -json  -count=1 -timeout=60s "
+      .. vim.loop.cwd()
+      .. "/neotest_go/..."
+    local result = plugin.build_spec(args)
+    assert.are.same(expected_command, result.command)
+    assert.are.same(path, result.context.file)
+  end)
+end)

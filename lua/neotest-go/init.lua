@@ -164,6 +164,9 @@ function adapter.build_spec(args)
   })[position.type]
 
   local command = vim.tbl_flatten({
+    "cd",
+    dir,
+    "&&",
     "go",
     "test",
     "-v",
