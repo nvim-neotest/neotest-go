@@ -155,10 +155,10 @@ function adapter.build_spec(args)
   local package = utils.get_go_package_name(position.path)
 
   local cmd_args = ({
-    dir = { dir .. "/..." },
+    dir = { "./..." },
     -- file is the same as dir because running a single test file
     -- fails if it has external dependencies
-    file = { dir .. "/..." },
+    file = { "./..." },
     namespace = { package },
     test = { "-run", utils.get_prefix(args.tree, position.name) .. "\\$", dir },
   })[position.type]
