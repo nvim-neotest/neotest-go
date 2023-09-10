@@ -92,6 +92,7 @@ function adapter.discover_positions(path)
           right: (identifier) @test.cases1
             (#eq? @test.cases @test.cases1))
         body: (block
+         (expression_statement
           (call_expression
             function: (selector_expression
               field: (field_identifier) @test.method)
@@ -101,7 +102,7 @@ function adapter.discover_positions(path)
                 operand: (identifier) @test.case1
                 (#eq? @test.case @test.case1)
                 field: (field_identifier) @test.field.name1
-                (#eq? @test.field.name @test.field.name1)))))))
+                (#eq? @test.field.name @test.field.name1))))))))
 
 ;; query for map table tests 
 	(block
@@ -124,13 +125,14 @@ function adapter.discover_positions(path)
           right: (identifier) @test.cases1
             (#eq? @test.cases @test.cases1))
 	      body: (block
+           (expression_statement
             (call_expression
               function: (selector_expression
                 field: (field_identifier) @test.method)
                 (#match? @test.method "^Run$")
                 arguments: (argument_list
                 ((identifier) @test.key.name1
-                (#eq? @test.key.name @test.key.name1)))))))
+                (#eq? @test.key.name @test.key.name1))))))))
     ]]
   end
 
