@@ -17,6 +17,21 @@ local function get_buf_line(buf, nr)
   return vim.trim(api.nvim_buf_get_lines(buf, nr, nr + 1, false)[1])
 end
 
+function utils.get_function_name(args, position)
+  return utils.get_prefix(args.tree, position.name)
+end
+
+---@return table | nil
+function utils.get_dap_config()
+  return {
+    type = 'go',
+    name = 'Neotest Debugger',
+    request = 'launch',
+    mode = 'test',
+    program = './${relativeFileDirname}',
+  }
+end
+
 -- replace whitespace with underscores and remove surrounding quotes
 function utils.transform_test_name(name)
   return name:gsub("[%s]", "_"):gsub('^"(.*)"$', "%1")
