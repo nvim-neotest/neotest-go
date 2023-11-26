@@ -3,9 +3,5 @@
     "Lua.diagnostics.disable": [
         "missing-parameter"
     ],
-    "workspace.checkThirdParty": false,
-    "workspace.library": [
-        "../neotest",
-        "../plenary.nvim/lua/plenary",
-    ]
+    "workspace.checkThirdParty": false
 }
