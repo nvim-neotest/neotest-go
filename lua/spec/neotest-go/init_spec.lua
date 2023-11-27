@@ -33,15 +33,12 @@ assert:register(
   "assertion.has_property.negative"
 )
 
-require("neotest").setup({
-  adapters = {
-    require("neotest-go")({
-      experimental = {
-        test_table = true,
-      },
-      args = { "-count=1", "-timeout=60s" },
-    }),
+-- configure plugin with tested options
+plugin({
+  experimental = {
+    test_table = true,
   },
+  args = { "-count=1", "-timeout=60s" },
 })
 
 describe("is_test_file", function()
