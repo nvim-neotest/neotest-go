@@ -99,3 +99,11 @@ If you are new to `lua` please follow any of the following resources:
 - https://learnxinyminutes.com/docs/lua/
 - https://www.lua.org/manual/5.1/
 - https://github.com/nanotee/nvim-lua-guide
+
+### Unit tests
+
+Unit tests are written with the [plenary busted framework](https://github.com/nvim-lua/plenary.nvim/blob/master/TESTS_README.md). They can be run in a shell with
+
+```bash
+nvim --headless -c ':PlenaryBustedDirectory lua/spec'
+```

@@ -33,6 +33,14 @@ assert:register(
   "assertion.has_property.negative"
 )
 
+-- configure plugin with tested options
+plugin({
+  experimental = {
+    test_table = true,
+  },
+  args = { "-count=1", "-timeout=60s" },
+})
+
 describe("is_test_file", function()
   it("matches Go files", function()
     assert.equals(true, plugin.is_test_file("foo_test.go"))
@@ -192,52 +200,52 @@ describe("discover_positions", function()
     local positions = plugin.discover_positions(path):to_list()
     local expected_positions = {
       {
-        id = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go",
+        id = vim.loop.cwd() .. "/neotest_go/map_table_test.go",
         name = "map_table_test.go",
-        path = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go",
+        path = vim.loop.cwd() .. "/neotest_go/map_table_test.go",
         range = { 0, 0, 40, 0 },
         type = "file",
       },
       {
         {
-          id = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go::TestSplit",
+          id = vim.loop.cwd() .. "/neotest_go/map_table_test.go::TestSplit",
           name = "TestSplit",
-          path = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go",
+          path = vim.loop.cwd() .. "/neotest_go/map_table_test.go",
           range = { 8, 0, 28, 1 },
           type = "test",
         },
         {
           {
-            id = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go::TestSplit::simple",
+            id = vim.loop.cwd() .. "/neotest_go/map_table_test.go::TestSplit::simple",
             name = '"simple"',
-            path = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go",
+            path = vim.loop.cwd() .. "/neotest_go/map_table_test.go",
             range = { 14, 18, 14, 75 },
             type = "test",
           },
         },
         {
           {
-            id = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go::TestSplit::wrong_sep",
+            id = vim.loop.cwd() .. "/neotest_go/map_table_test.go::TestSplit::wrong_sep",
             name = '"wrong sep"',
-            path = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go",
+            path = vim.loop.cwd() .. "/neotest_go/map_table_test.go",
             range = { 15, 18, 15, 69 },
             type = "test",
           },
         },
         {
           {
-            id = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go::TestSplit::no_sep",
+            id = vim.loop.cwd() .. "/neotest_go/map_table_test.go::TestSplit::no_sep",
             name = '"no sep"',
-            path = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go",
+            path = vim.loop.cwd() .. "/neotest_go/map_table_test.go",
             range = { 16, 18, 16, 65 },
             type = "test",
           },
         },
         {
           {
-            id = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go::TestSplit::trailing_sep",
+            id = vim.loop.cwd() .. "/neotest_go/map_table_test.go::TestSplit::trailing_sep",
             name = '"trailing sep"',
-            path = "/Users/sgetman/.local/share/nvim/site/pack/packer/start/neotest-go/neotest_go/map_table_test.go",
+            path = vim.loop.cwd() .. "/neotest_go/map_table_test.go",
             range = { 17, 18, 17, 76 },
             type = "test",
           },
