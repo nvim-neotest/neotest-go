@@ -190,7 +190,6 @@ function adapter.build_spec(args)
     vim.list_extend(get_args(), args.extra_args or {}),
     unpack(cmd_args),
   })
-  print(table.concat(command, " "))
   return {
     command = table.concat(command, " "),
     context = {
@@ -231,9 +230,6 @@ end
 function adapter.prepare_results(tree, lines, go_root, go_module)
   local tests, log = output.marshal_gotest_output(lines)
 
-  print("TEST OUTPUT")
-  print(vim.inspect(tests))
-
   local results = {}
   local no_results = vim.tbl_isempty(tests)
   local empty_result_fname
@@ -243,9 +239,6 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
   for _, node in tree:iter_nodes() do
     local value = node:data()
 
-    print("TREE NODE")
-    print(vim.inspect(value))
-
     if no_results then
       results[value.id] = {
         status = test_statuses.fail,
@@ -254,7 +247,6 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
       break
     end
     if value.type == "file" then
-      print("FILE")
       results[value.id] = {
         status = test_statuses.pass,
         output = empty_result_fname,
@@ -263,15 +255,6 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
     else
       local normalized_id = utils.normalize_id(value.id, go_root, go_module)
       local test_result = tests[normalized_id]
-
-      print("GO_ROOT | GO_MODULE")
-      print(go_root, go_module)
-
-      print("ID | NORMALIZED_ID")
-      print(value.id, normalized_id)
-
-      print("TEST RESULT")
-      print(vim.inspect(test_result))
 
       -- file level node
       if test_result then
@@ -292,8 +275,6 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
       end
     end
   end
-  print("FINAL RESULTS")
-  print(vim.inspect(results))
   return results
 end
 

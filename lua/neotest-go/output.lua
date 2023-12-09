@@ -29,7 +29,6 @@ function M.marshal_gotest_output(lines)
   local testfile, linenumber
   for _, line in ipairs(lines) do
     if line ~= "" then
-      print(line)
       local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
       if not ok then
         log = vim.tbl_map(function(l)

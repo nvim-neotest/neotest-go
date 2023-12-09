@@ -78,11 +78,8 @@ end
 ---@param go_module string
 ---@return string
 function utils.normalize_id(id, go_root, go_module)
-  print("NORMALIZE")
   local root = async.fn.substitute(id, go_root, go_module, "")
-  print("ROOT", root)
   local normalized_id, _ = root:gsub("/[%w_%-%.]*_test.go", "")
-  print("SUBBED", normalized_id)
   return normalized_id
 end
 
