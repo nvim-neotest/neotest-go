@@ -35,6 +35,10 @@ function utils.normalize_test_name(package, test)
   return package .. "::" .. table.concat(parts, "::"), utils.get_parent_test(package, test)
 end
 
+--- Gets a parent test name from test. If there's no parent, returns nil
+---@param package string
+---@param test string
+---@return string?
 function utils.get_parent_test(package, test)
   local parts = vim.split(test, "/")
   if #parts < 2 then
@@ -47,7 +51,7 @@ end
 --- Decides if a test id reasonably belongs to a suite. If it does, returns a matching
 --- path to be used with -run flag. If it doesn't, returns nil.
 ---@param id string
----@return string|nil
+---@return string?
 function utils.id_to_suite_test_name(id)
   local parts = vim.split(id, "::")
   parts = vim.list_slice(parts, 2, #parts)
