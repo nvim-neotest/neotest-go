@@ -229,7 +229,6 @@ end
 ---@return table<string, neotest.Result[]>
 function adapter.prepare_results(tree, lines, go_root, go_module)
   local tests, log = output.marshal_gotest_output(lines)
-
   local results = {}
   local no_results = vim.tbl_isempty(tests)
   local empty_result_fname
@@ -238,7 +237,6 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
   fn.writefile(log, empty_result_fname)
   for _, node in tree:iter_nodes() do
     local value = node:data()
-
     if no_results then
       results[value.id] = {
         status = test_statuses.fail,
@@ -255,7 +253,6 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
     else
       local normalized_id = utils.normalize_id(value.id, go_root, go_module)
       local test_result = tests[normalized_id]
-
       -- file level node
       if test_result then
         local fname = async.fn.tempname()
