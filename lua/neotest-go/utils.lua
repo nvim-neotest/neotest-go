@@ -23,17 +23,52 @@ function utils.transform_test_name(name)
 end
 
 --- Converts from a given go package and the "/" seperated testname to a
---- format "package::test::subtest".
+--- format "package::test::subtest". Reverts changes made by suite support.
 --- Returns the test in this format as well as the testname of the parent test (if present)
 ---@param package string
 ---@param test string
 ---@return string, string?
 function utils.normalize_test_name(package, test)
+  test = utils.suite_test_name_to_test_name(test)
   -- sub-tests are structured as 'TestMainTest/subtest_clause'
   local parts = vim.split(test, "/")
-  local is_subtest = #parts > 1
-  local parenttest = is_subtest and (package .. "::" .. parts[1]) or nil
-  return package .. "::" .. table.concat(parts, "::"), parenttest
+  return package .. "::" .. table.concat(parts, "::"), utils.get_parent_test(package, test)
+end
+
+function utils.get_parent_test(package, test)
+  local parts = vim.split(test, "/")
+  if #parts < 2 then
+    return nil
+  end
+  local parent_parts = vim.list_slice(parts, 1, #parts - 1)
+  return package .. "::" .. table.concat(parent_parts, "::")
+end
+
+--- Decides if a test id reasonably belongs to a suite. If it does, returns a matching
+--- path to be used with -run flag. If it doesn't, returns nil.
+---@param id string
+---@return string|nil
+function utils.id_to_suite_test_name(id)
+  local parts = vim.split(id, "::")
+  parts = vim.list_slice(parts, 2, #parts)
+  if #parts > 1 and string.match(parts[1], "Suite") then
+    parts[1] = "Test" .. parts[1]
+    return table.concat(parts, "/")
+  end
+  return nil
+end
+
+--- Decides if test name from output belonged to a suite. If it did, reverses
+--- it back to normal form, if not, returns as-is
+---@param name string
+---@return string
+function utils.suite_test_name_to_test_name(name)
+  local parts = vim.split(name, "/")
+  if #parts > 1 and string.match(parts[1], "Suite") then
+    parts[1] = string.sub(parts[1], 5)
+    return table.concat(parts, "/")
+  end
+  return name
 end
 
 --- Converts from a given neotest id and go_root / go_module to format
@@ -43,8 +78,11 @@ end
 ---@param go_module string
 ---@return string
 function utils.normalize_id(id, go_root, go_module)
+  print("NORMALIZE")
   local root = async.fn.substitute(id, go_root, go_module, "")
-  local normalized_id, _ = root:gsub("/[%w_-]*_test.go", "")
+  print("ROOT", root)
+  local normalized_id, _ = root:gsub("/[%w_%-%.]*_test.go", "")
+  print("SUBBED", normalized_id)
   return normalized_id
 end
 

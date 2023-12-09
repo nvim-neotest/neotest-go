@@ -29,6 +29,7 @@ function M.marshal_gotest_output(lines)
   local testfile, linenumber
   for _, line in ipairs(lines) do
     if line ~= "" then
+      print(line)
       local ok, parsed = pcall(vim.json.decode, line, { luanil = { object = true } })
       if not ok then
         log = vim.tbl_map(function(l)
@@ -49,6 +50,13 @@ function M.marshal_gotest_output(lines)
         local testname, parenttestname = utils.normalize_test_name(package, test)
         if not tests[testname] then
           tests[testname] = {
+            output = {},
+            progress = {},
+            file_output = {},
+          }
+        end
+        if parenttestname and not tests[parenttestname] then
+          tests[parenttestname] = {
             output = {},
             progress = {},
             file_output = {},

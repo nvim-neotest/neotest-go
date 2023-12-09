@@ -55,9 +55,15 @@ function adapter.discover_positions(path)
       (#match? @test.name "^(Test|Example)"))
       @test.definition
 
-    (method_declaration
-      name: (field_identifier) @test.name
-      (#match? @test.name "^(Test|Example)")) @test.definition
+   (method_declaration
+    name: (field_identifier) @test.name
+   (#match? @test.name "^(Test|Example)")) @test.definition
+
+   (method_declaration
+    receiver: (parameter_list
+               (parameter_declaration
+                type: (pointer_type
+                       (type_identifier) @test.name)))) @test.definition
 
     (call_expression
       function: (selector_expression
@@ -165,6 +171,13 @@ function adapter.build_spec(args)
     test = { "-run", utils.get_prefix(args.tree, position.name) .. "\\$", dir },
   })[position.type]
 
+  -- see if the test is part suite
+  -- has Suite in name and nested
+  local suite_test_name = utils.id_to_suite_test_name(position.id)
+  if suite_test_name then
+    cmd_args = { "-run", suite_test_name .. "$" }
+  end
+
   local command = vim.tbl_flatten({
     "cd",
     dir,
@@ -177,6 +190,7 @@ function adapter.build_spec(args)
     vim.list_extend(get_args(), args.extra_args or {}),
     unpack(cmd_args),
   })
+  print(table.concat(command, " "))
   return {
     command = table.concat(command, " "),
     context = {
@@ -216,6 +230,10 @@ end
 ---@return table<string, neotest.Result[]>
 function adapter.prepare_results(tree, lines, go_root, go_module)
   local tests, log = output.marshal_gotest_output(lines)
+
+  print("TEST OUTPUT")
+  print(vim.inspect(tests))
+
   local results = {}
   local no_results = vim.tbl_isempty(tests)
   local empty_result_fname
@@ -224,6 +242,10 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
   fn.writefile(log, empty_result_fname)
   for _, node in tree:iter_nodes() do
     local value = node:data()
+
+    print("TREE NODE")
+    print(vim.inspect(value))
+
     if no_results then
       results[value.id] = {
         status = test_statuses.fail,
@@ -232,6 +254,7 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
       break
     end
     if value.type == "file" then
+      print("FILE")
       results[value.id] = {
         status = test_statuses.pass,
         output = empty_result_fname,
@@ -240,6 +263,16 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
     else
       local normalized_id = utils.normalize_id(value.id, go_root, go_module)
       local test_result = tests[normalized_id]
+
+      print("GO_ROOT | GO_MODULE")
+      print(go_root, go_module)
+
+      print("ID | NORMALIZED_ID")
+      print(value.id, normalized_id)
+
+      print("TEST RESULT")
+      print(vim.inspect(test_result))
+
       -- file level node
       if test_result then
         local fname = async.fn.tempname()
@@ -259,6 +292,8 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
       end
     end
   end
+  print("FINAL RESULTS")
+  print(vim.inspect(results))
   return results
 end
 
