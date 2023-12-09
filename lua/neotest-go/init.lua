@@ -63,7 +63,7 @@ function adapter.discover_positions(path)
     receiver: (parameter_list
                (parameter_declaration
                 type: (pointer_type
-                       (type_identifier) @test.name)))) @test.definition
+                       (type_identifier) @namespace.name)))) @namespace.definition
 
     (call_expression
       function: (selector_expression
