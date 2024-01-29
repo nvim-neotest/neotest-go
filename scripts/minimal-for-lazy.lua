@@ -34,11 +34,13 @@ function M.setup()
   M.load("nvim-treesitter/nvim-treesitter")
   M.load("nvim-neotest/neotest")
   M.load("neovim/nvim-lspconfig")
+  require("nvim-treesitter.configs").setup({
+    -- A list of parser names, or "all" (the five listed parsers should always be installed)
+    --
+    sync_install = true,
+    ensure_installed = { "go" },
+    auto_install = true,
+  })
 end
 
 M.setup()
-
-require("nvim-treesitter.configs").setup({
-  -- A list of parser names, or "all" (the five listed parsers should always be installed)
-  ensure_installed = { "go" },
-})
