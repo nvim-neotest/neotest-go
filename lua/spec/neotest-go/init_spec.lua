@@ -42,7 +42,7 @@ plugin({
 })
 
 describe("is_test_file", function()
-  it("matches Go files", function()
+  async.it("matches Go files", function()
     assert.equals(true, plugin.is_test_file("foo_test.go"))
   end)
 end)
@@ -354,5 +354,83 @@ describe("build_spec", function()
     local result = plugin.build_spec(args)
     assert.are.same(expected_command, result.command)
     assert.are.same(path, result.context.file)
+  end)
+end)
+
+describe("suite", function()
+  async.it("check that suite positions are discovered", function()
+    local path = vim.loop.cwd() .. "/neotest_go/suite_test.go"
+    local positions = plugin.discover_positions(path):to_list()
+    local expected_positions = {
+      {
+        id = path,
+        path = path,
+        name = "suite_test.go",
+        range = { 0, 0, 39, 0 },
+        type = "file",
+      },
+      {
+        {
+          id = path .. "::ExampleTestSuite",
+          name = "ExampleTestSuite",
+          path = path,
+          range = { 26, 0, 28, 1 },
+          type = "namespace",
+        },
+        {
+          {
+            id = path .. "::ExampleTestSuite::TestExample",
+            name = "TestExample",
+            path = path,
+            range = { 26, 0, 28, 1 },
+            type = "test",
+          },
+        },
+      },
+      {
+        {
+          id = path .. "::ExampleTestSuite",
+          name = "ExampleTestSuite",
+          path = path,
+          range = { 30, 0, 32, 1 },
+          type = "namespace",
+        },
+        {
+          {
+            id = path .. "::ExampleTestSuite::TestExampleFailure",
+            name = "TestExampleFailure",
+            path = path,
+            range = { 30, 0, 32, 1 },
+            type = "test",
+          },
+        },
+      },
+      {
+        {
+          id = path .. "::TestExampleTestSuite",
+          name = "TestExampleTestSuite",
+          path = path,
+          range = { 36, 0, 38, 1 },
+          type = "test",
+        },
+      },
+    }
+    assert.are.same(expected_positions, positions)
+  end)
+
+  async.it("build spec for a single suite test", function()
+    local path = vim.loop.cwd() .. "/neotest_go/suite_test.go"
+
+    -- TestExample
+    local tree = plugin.discover_positions(path):children()[1]:children()[1]
+    local result = plugin.build_spec({ tree = tree })
+    local expected_command = (
+      "cd "
+      .. vim.loop.cwd()
+      .. "/neotest_go"
+      .. " && "
+      .. "go test -v -json  -count=1 -timeout=60s ./... -run TestExampleTestSuite/TestExample"
+    )
+    assert.are.same(expected_command, result.command)
   end)
 end)

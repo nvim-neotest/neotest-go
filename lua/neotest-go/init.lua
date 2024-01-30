@@ -55,9 +55,15 @@ function adapter.discover_positions(path)
       (#match? @test.name "^(Test|Example)"))
       @test.definition
 
-    (method_declaration
-      name: (field_identifier) @test.name
-      (#match? @test.name "^(Test|Example)")) @test.definition
+   (method_declaration
+    name: (field_identifier) @test.name
+   (#match? @test.name "^(Test|Example)")) @test.definition
+
+   (method_declaration
+    receiver: (parameter_list
+               (parameter_declaration
+                type: (pointer_type
+                       (type_identifier) @namespace.name)))) @namespace.definition
 
     (call_expression
       function: (selector_expression
@@ -164,6 +170,13 @@ function adapter.build_spec(args)
     namespace = { package },
     test = { "-run", utils.get_prefix(args.tree, position.name) .. "\\$", dir },
   })[position.type]
+
+  -- see if the test is part suite
+  -- has Suite in name and nested
+  local suite_test_name = utils.id_to_suite_test_name(position.id)
+  if suite_test_name then
+    cmd_args = { "-run", suite_test_name .. "$" }
+  end
 
   local command = vim.tbl_flatten({
     "cd",

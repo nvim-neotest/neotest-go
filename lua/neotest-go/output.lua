@@ -54,6 +54,13 @@ function M.marshal_gotest_output(lines)
             file_output = {},
           }
         end
+        if parenttestname and not tests[parenttestname] then
+          tests[parenttestname] = {
+            output = {},
+            progress = {},
+            file_output = {},
+          }
+        end
 
         -- if a new file and line number is present in the current line, use this info from now on
         -- begin collection log data with everything after the file:linenumber
