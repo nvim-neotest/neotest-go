@@ -350,8 +350,21 @@ describe("build_spec", function()
     local args = { tree = tree }
     local expected_command = "cd "
       .. vim.loop.cwd()
-      .. "/neotest_go && go test -v -json  -count=1 -timeout=60s ./..."
+      .. "/neotest_go && go test -v -json  -count=1 -timeout=60s ./"
     local result = plugin.build_spec(args)
+    assert.are.same(expected_command, result.command)
+    assert.are.same(path, result.context.file)
+  end)
+  async.it("build specification for many_table_test.go recuresive run", function()
+    local plugin_with_recursive_run = require("neotest-go")({ recursive_run = true })
+    local path = vim.loop.cwd() .. "/neotest_go/many_table_test.go"
+    local tree = plugin.discover_positions(path)
+
+    local args = { tree = tree }
+    local expected_command = "cd "
+      .. vim.loop.cwd()
+      .. "/neotest_go && go test -v -json  -count=1 -timeout=60s ./..."
+    local result = plugin_with_recursive_run.build_spec(args)
     assert.are.same(expected_command, result.command)
     assert.are.same(path, result.context.file)
   end)
