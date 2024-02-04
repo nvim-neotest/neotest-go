@@ -57,6 +57,17 @@ require("neotest").setup({
 })
 ```
 
+By default `go test` runs for currecnt package only. If you want to run it recursively you need to set:
+```lua
+require("neotest").setup({
+  adapters = {
+    require("neotest-go")({
+      recursive_run = true
+    })
+  }
+})
+```
+
 ## Usage
 
 _NOTE_: all usages of `require('neotest').run.run` can be mapped to a command in your config (this is not included and should be done by the user)

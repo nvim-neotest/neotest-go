@@ -17,6 +17,10 @@ local get_args = function()
   return {}
 end
 
+local recursive_run = function()
+  return false
+end
+
 ---@type neotest.Adapter
 local adapter = { name = "neotest-go" }
 
@@ -149,25 +153,17 @@ end
 function adapter.build_spec(args)
   local results_path = async.fn.tempname()
   local position = args.tree:data()
-  local dir = position.path
-  -- The path for the position is not a directory, ensure the directory variable refers to one
-  if fn.isdirectory(position.path) ~= 1 then
-    dir = fn.fnamemodify(position.path, ":h")
+  local dir = "./"
+  if recursive_run() then
+    dir = "./..."
   end
-  local package = utils.get_go_package_name(position.path)
-
-  local cmd_args = ({
-    dir = { "./..." },
-    -- file is the same as dir because running a single test file
-    -- fails if it has external dependencies
-    file = { "./..." },
-    namespace = { package },
-    test = { "-run", utils.get_prefix(args.tree, position.name) .. "\\$", dir },
-  })[position.type]
-
+  local location = position.path
+  if fn.isdirectory(position.path) ~= 1 then
+    location = fn.fnamemodify(position.path, ":h")
+  end
   local command = vim.tbl_flatten({
     "cd",
-    dir,
+    location,
     "&&",
     "go",
     "test",
@@ -175,7 +171,7 @@ function adapter.build_spec(args)
     "-json",
     utils.get_build_tags(),
     vim.list_extend(get_args(), args.extra_args or {}),
-    unpack(cmd_args),
+    dir,
   })
   return {
     command = table.concat(command, " "),
@@ -281,6 +277,14 @@ setmetatable(adapter, {
     elseif opts.args then
       get_args = function()
         return opts.args
+      end
+    end
+
+    if is_callable(opts.recursive_run) then
+      recursive_run = opts.recursive_run
+    elseif opts.recursive_run then
+      recursive_run = function()
+        return opts.recursive_run
       end
     end
     return adapter
