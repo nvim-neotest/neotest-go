@@ -24,7 +24,6 @@ end
 ---@type neotest.Adapter
 local adapter = { name = "neotest-go" }
 
-adapter.root = lib.files.match_root_pattern("go.mod", "go.sum")
 
 function adapter.is_test_file(file_path)
   if not vim.endswith(file_path, ".go") then
@@ -286,6 +285,13 @@ setmetatable(adapter, {
       recursive_run = function()
         return opts.recursive_run
       end
+    end
+    if is_callable(opts.root_pattern) then
+      adapter.root = opts.root_pattern
+    elseif opts.root_pattern then
+      adapter.root = lib.files.match_root_pattern(opts.root_pattern)
+    else
+      adapter.root = lib.files.match_root_pattern("go.mod", "go.sum")
     end
     return adapter
   end,
