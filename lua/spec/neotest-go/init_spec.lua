@@ -302,6 +302,7 @@ describe("prepare_results", function()
       end
     end
   )
+
   async.it("check that all nested results are in three_level_nested_test.go", function()
     local tests_folder = vim.loop.cwd() .. "/neotest_go"
     local test_file = tests_folder .. "/three_level_nested_test.go"
