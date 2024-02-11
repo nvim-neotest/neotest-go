@@ -234,20 +234,22 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
       }
       file_id = value.id
     else
-      local normalized_id = utils.normalize_id(value.id, go_root, go_module)
+      -- to remove quotes, for example three_level_nested_test.go::TestOdd::"odd"::5_is_odd
+      local value_id = value.id:gsub('%"', "")
+      local normalized_id = utils.normalize_id(value_id, go_root, go_module)
       local test_result = tests[normalized_id]
       -- file level node
       if test_result then
         local fname = async.fn.tempname()
         fn.writefile(test_result.output, fname)
-        results[value.id] = {
+        results[value_id] = {
           status = test_result.status,
           short = table.concat(test_result.output, ""),
           output = fname,
         }
         local errors = utils.get_errors_from_test(test_result, utils.get_filename_from_id(value.id))
         if errors then
-          results[value.id].errors = errors
+          results[value_id].errors = errors
         end
         if test_result.status == test_statuses.fail and file_id then
           results[file_id].status = test_statuses.fail
