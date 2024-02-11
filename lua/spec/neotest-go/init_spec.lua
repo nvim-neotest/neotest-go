@@ -333,7 +333,6 @@ describe("prepare_results", function()
     local handle = io.popen(table.concat(command, " "))
     local result = handle:read("*a")
     handle:close()
-
     local lines = {}
     for s in result:gmatch("[^\r\n]+") do
       table.insert(lines, s)
