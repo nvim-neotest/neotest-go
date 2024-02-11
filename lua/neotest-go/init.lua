@@ -242,14 +242,14 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
       if test_result then
         local fname = async.fn.tempname()
         fn.writefile(test_result.output, fname)
-        results[value_id] = {
+        results[value.id] = {
           status = test_result.status,
           short = table.concat(test_result.output, ""),
           output = fname,
         }
         local errors = utils.get_errors_from_test(test_result, utils.get_filename_from_id(value.id))
         if errors then
-          results[value_id].errors = errors
+          results[value.id].errors = errors
         end
         if test_result.status == test_statuses.fail and file_id then
           results[file_id].status = test_statuses.fail
