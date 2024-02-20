@@ -161,6 +161,12 @@ function adapter.build_spec(args)
   if fn.isdirectory(position.path) ~= 1 then
     location = fn.fnamemodify(position.path, ":h")
   end
+
+  local run_flag = {}
+  if position.type == "test" then
+    run_flag = { "--run", "\\^" .. utils.get_prefix(args.tree, position.name) .. "\\$" }
+  end
+
   local command = vim.tbl_flatten({
     "cd",
     location,
@@ -171,8 +177,10 @@ function adapter.build_spec(args)
     "-json",
     utils.get_build_tags(),
     vim.list_extend(get_args(), args.extra_args or {}),
+    run_flag,
     dir,
   })
+
   return {
     command = table.concat(command, " "),
     context = {
