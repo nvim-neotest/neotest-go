@@ -157,15 +157,22 @@ function utils.get_errors_from_test(test, file_name)
 end
 
 ---@param tree neotest.Tree
----@param name string
 ---@return string
-function utils.get_prefix(tree, name)
-  local parent_tree = tree:parent()
-  if not parent_tree or parent_tree:data().type == "file" then
-    return name
+function utils.get_prefix(tree)
+  local parts = {}
+
+  -- build test name for potentially deeply nested tests
+  while tree and tree:data().type == "test" do
+    local name = tree:data().name
+    name = name:gsub("[\"']", "") -- Remove quotes
+    name = name:gsub("%s", "_")   -- Replace spaces with underscores
+
+    table.insert(parts, 1, name)
+
+    tree = tree:parent()
   end
-  local parent_name = parent_tree:data().name
-  return parent_name .. "/" .. name
+
+  return table.concat(parts, "/")
 end
 
 return utils

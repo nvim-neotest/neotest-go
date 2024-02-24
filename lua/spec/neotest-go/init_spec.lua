@@ -362,7 +362,7 @@ describe("build_spec", function()
     local args = { tree = tree }
     local expected_command = "cd "
       .. vim.loop.cwd()
-      .. "/neotest_go && go test -v -json  -count=1 -timeout=60s --run \\^TestAddOne\\$ ./"
+      .. "/neotest_go && go test -v -json  -count=1 -timeout=60s --run ^TestAddOne$ ./"
     local result = plugin.build_spec(args)
     assert.are.same(expected_command, result.command)
     assert.are.same(path, result.context.file)

@@ -108,7 +108,7 @@ function adapter.discover_positions(path)
                 field: (field_identifier) @test.field.name1
                 (#eq? @test.field.name @test.field.name1))))))))
 
-;; query for map table tests 
+;; query for map table tests
 	(block
       (short_var_declaration
         left: (expression_list
@@ -164,7 +164,7 @@ function adapter.build_spec(args)
 
   local run_flag = {}
   if position.type == "test" then
-    run_flag = { "--run", "\\^" .. utils.get_prefix(args.tree, position.name) .. "\\$" }
+    run_flag = { "--run", "^" .. utils.get_prefix(args.tree) .. "$" }
   end
 
   local command = vim.tbl_flatten({
