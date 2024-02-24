@@ -234,7 +234,9 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
       }
       file_id = value.id
     else
-      local normalized_id = utils.normalize_id(value.id, go_root, go_module)
+      -- mitigates `value.id` such as jsonoutput_test.go::Test_Level_1::"Level 2"::Level_3'
+      local value_id = value.id:gsub('%"', ""):gsub(" ", "_")
+      local normalized_id = utils.normalize_id(value_id, go_root, go_module)
       local test_result = tests[normalized_id]
       -- file level node
       if test_result then

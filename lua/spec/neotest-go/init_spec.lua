@@ -302,6 +302,47 @@ describe("prepare_results", function()
       end
     end
   )
+
+  async.it("check that all nested results are in three_level_nested_test.go", function()
+    local tests_folder = vim.loop.cwd() .. "/neotest_go"
+    local test_file = tests_folder .. "/three_level_nested_test.go"
+    local positions = plugin.discover_positions(test_file)
+
+    local expected_keys = {
+      test_file,
+      test_file .. "::TestOdd",
+      test_file .. "::TestOdd::odd",
+      test_file .. '::TestOdd::"odd"::7_is_odd',
+      test_file .. '::TestOdd::"odd"::5_is_odd',
+      test_file .. '::TestOdd::"odd"::"5 is odd"::9_is_odd',
+    }
+    -- we should run test from module root
+    local command = {
+      "cd",
+      tests_folder,
+      "&&",
+      "go",
+      "test",
+      "-v",
+      "-json",
+      "",
+      "-count=1",
+      "-timeout=60s",
+      "./...",
+    }
+    local handle = io.popen(table.concat(command, " "))
+    local result = handle:read("*a")
+    handle:close()
+    local lines = {}
+    for s in result:gmatch("[^\r\n]+") do
+      table.insert(lines, s)
+    end
+    local processed_results = plugin.prepare_results(positions, lines, tests_folder, "neotest_go")
+    for _, v in pairs(expected_keys) do
+      assert.has_property(v, processed_results)
+    end
+  end)
+
   async.it("check that we have correct file level test result status", function()
     local tests_folder = vim.loop.cwd() .. "/neotest_go"
     local test_cases = {}
