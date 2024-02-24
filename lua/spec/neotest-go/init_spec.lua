@@ -313,6 +313,7 @@ describe("prepare_results", function()
       test_file .. "::TestOdd::odd",
       test_file .. '::TestOdd::"odd"::7_is_odd',
       test_file .. '::TestOdd::"odd"::5_is_odd',
+      test_file .. '::TestOdd::"odd"::"5 is odd"::9_is_odd',
     }
     -- we should run test from module root
     local command = {
