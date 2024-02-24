@@ -58,9 +58,8 @@ function M.marshal_gotest_output(lines)
         -- if a new file and line number is present in the current line, use this info from now on
         -- begin collection log data with everything after the file:linenumber
         local new_test_file, new_line_number = utils.get_test_file_info(parsed.Output)
+        testfile, linenumber = new_test_file, new_line_number
         if new_test_file and new_line_number then
-          testfile = new_test_file
-          linenumber = new_line_number
           if not tests[testname].file_output[testfile] then
             tests[testname].file_output[testfile] = {}
           end
