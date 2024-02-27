@@ -164,7 +164,7 @@ function adapter.build_spec(args)
 
   local run_flag = {}
   if position.type == "test" then
-    run_flag = { "--run", "^" .. utils.get_prefix(args.tree) .. "$" }
+    run_flag = { "-run", "^" .. utils.get_prefix(args.tree) .. "$" }
   end
 
   local command = vim.tbl_flatten({
