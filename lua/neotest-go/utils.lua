@@ -158,7 +158,7 @@ end
 
 ---@param tree neotest.Tree
 ---@return string
-function utils.get_prefix(tree)
+function utils.get_test_id(tree)
   local parts = {}
 
   -- build test name for potentially deeply nested tests
