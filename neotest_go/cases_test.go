@@ -42,6 +42,12 @@ func TestAdd(t *testing.T) {
 		assert.Equal(t, 5, add(1, 2))
 	})
 
+	t.Run("test three", func(t *testing.T) {
+		t.Run("test four", func(t *testing.T) {
+			assert.Equal(t, 3, add(1, 2))
+		})
+	})
+
 	variable := "string"
 	t.Run(variable, func(t *testing.T) {
 		assert.Equal(t, 3, add(1, 2))
