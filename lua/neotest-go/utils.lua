@@ -165,7 +165,7 @@ function utils.get_test_id(tree)
   while tree and tree:data().type == "test" do
     local name = tree:data().name
     name = name:gsub("[\"']", "") -- Remove quotes
-    name = name:gsub("%s", "_")   -- Replace spaces with underscores
+    name = name:gsub("%s", "_") -- Replace spaces with underscores
 
     table.insert(parts, 1, name)
 
