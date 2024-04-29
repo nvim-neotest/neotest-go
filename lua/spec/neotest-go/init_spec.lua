@@ -134,7 +134,7 @@ describe("discover_positions", function()
         id = vim.loop.cwd() .. "/neotest_go/cases_test.go",
         name = "cases_test.go",
         path = vim.loop.cwd() .. "/neotest_go/cases_test.go",
-        range = { 0, 0, 49, 0 },
+        range = { 0, 0, 55, 0 },
         type = "file",
       },
       {
@@ -169,7 +169,7 @@ describe("discover_positions", function()
           id = vim.loop.cwd() .. "/neotest_go/cases_test.go::TestAdd",
           name = "TestAdd",
           path = vim.loop.cwd() .. "/neotest_go/cases_test.go",
-          range = { 35, 0, 48, 1 },
+          range = { 35, 0, 54, 1 },
           type = "test",
         },
         {
@@ -188,6 +188,24 @@ describe("discover_positions", function()
             path = vim.loop.cwd() .. "/neotest_go/cases_test.go",
             range = { 40, 1, 42, 3 },
             type = "test",
+          },
+        },
+        {
+          {
+            id = vim.loop.cwd() .. "/neotest_go/cases_test.go::TestAdd::test_three",
+            name = '"test three"',
+            path = vim.loop.cwd() .. "/neotest_go/cases_test.go",
+            range = { 44, 1, 48, 3 },
+            type = "test",
+          },
+          {
+            {
+              id = vim.loop.cwd() .. '/neotest_go/cases_test.go::TestAdd::"test three"::test_four',
+              name = '"test four"',
+              path = vim.loop.cwd() .. "/neotest_go/cases_test.go",
+              range = { 45, 2, 47, 4 },
+              type = "test",
+            },
           },
         },
       },
@@ -396,6 +414,33 @@ describe("build_spec", function()
     assert.are.same(expected_command, result.command)
     assert.are.same(path, result.context.file)
   end)
+  async.it("build specification for single test", function()
+    local path = vim.loop.cwd() .. "/neotest_go/main_test.go"
+    local tree = plugin.discover_positions(path):children()[1]
+
+    local args = { tree = tree }
+    local expected_command = "cd "
+      .. vim.loop.cwd()
+      .. "/neotest_go && go test -v -json  -count=1 -timeout=60s -run ^TestAddOne$ ./"
+    local result = plugin.build_spec(args)
+    assert.are.same(expected_command, result.command)
+    assert.are.same(path, result.context.file)
+  end)
+
+  async.it("build specification for single nested test", function()
+    local path = vim.loop.cwd() .. "/neotest_go/cases_test.go"
+    local tree = plugin.discover_positions(path)
+    local test_tree = tree:children()[2]:children()[3]:children()[1]
+
+    local args = { tree = test_tree }
+    local expected_command = "cd "
+      .. vim.loop.cwd()
+      .. "/neotest_go && go test -v -json  -count=1 -timeout=60s -run ^TestAdd/test_three/test_four$ ./"
+    local result = plugin.build_spec(args)
+    assert.are.same(expected_command, result.command)
+    assert.are.same(path, result.context.file)
+  end)
+  -- This test is overwriting plugin global state, keep it at end of the file or face the consequences ¯\_(ツ)_/¯
   async.it("build specification for many_table_test.go recuresive run", function()
     local plugin_with_recursive_run = require("neotest-go")({ recursive_run = true })
     local path = vim.loop.cwd() .. "/neotest_go/many_table_test.go"

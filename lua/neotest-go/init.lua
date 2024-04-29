@@ -108,7 +108,7 @@ function adapter.discover_positions(path)
                 field: (field_identifier) @test.field.name1
                 (#eq? @test.field.name @test.field.name1))))))))
 
-;; query for map table tests 
+;; query for map table tests
 	(block
       (short_var_declaration
         left: (expression_list
@@ -161,6 +161,12 @@ function adapter.build_spec(args)
   if fn.isdirectory(position.path) ~= 1 then
     location = fn.fnamemodify(position.path, ":h")
   end
+
+  local run_flag = {}
+  if position.type == "test" then
+    run_flag = { "-run", "^" .. utils.get_test_id(args.tree) .. "$" }
+  end
+
   local command = vim.tbl_flatten({
     "cd",
     location,
@@ -171,8 +177,10 @@ function adapter.build_spec(args)
     "-json",
     utils.get_build_tags(),
     vim.list_extend(get_args(), args.extra_args or {}),
+    run_flag,
     dir,
   })
+
   return {
     command = table.concat(command, " "),
     context = {
