@@ -170,7 +170,7 @@ function adapter.build_spec(args)
     "-v",
     "-json",
     utils.get_build_tags(),
-    vim.list_extend(get_args(), args.extra_args or {}),
+    vim.list_extend(get_args(location), args.extra_args or {}),
     dir,
   })
   return {
