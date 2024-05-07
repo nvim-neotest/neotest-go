@@ -1,6 +1,9 @@
 name: Neotest-go GitHub Actions
 on:
-  [pull_request, workflow_dispatch]
+  push:
+    branches:
+      - master
+  pull_request: ~
 jobs:
   check-formatting:
     runs-on: ubuntu-latest
@@ -35,3 +38,41 @@ jobs:
           nvim --version
           nvim --headless -c ':PlenaryBustedDirectory lua/spec'
 
+  release:
+    name: release
+    if: ${{ github.ref == 'refs/heads/master' }}
+    needs:
+      - check-formatting
+      - tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+  luarocks-upload:
+    runs-on: ubuntu-22.04
+    needs: release
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get Version 
+        run: echo "LUAROCKS_VERSION=$(git fetch --tags; git describe --abbrev=0 --tags)" >> $GITHUB_ENV
+      - name: LuaRocks Upload
+        uses: nvim-neorocks/luarocks-tag-release@v5
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
+        with:
+          version: ${{ env.LUAROCKS_VERSION }}
+          dependencies: |
+            plenary.nvim
+            nvim-nio
+            neotest
