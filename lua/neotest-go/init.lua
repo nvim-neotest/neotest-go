@@ -73,7 +73,7 @@ function adapter.discover_positions(path)
 
   if get_experimental_opts().test_table then
     query = query
-      .. [[
+        .. [[
 ;; query for list table tests
     (block
       (short_var_declaration
@@ -108,7 +108,7 @@ function adapter.discover_positions(path)
                 field: (field_identifier) @test.field.name1
                 (#eq? @test.field.name @test.field.name1))))))))
 
-;; query for map table tests 
+;; query for map table tests
 	(block
       (short_var_declaration
         left: (expression_list
@@ -152,6 +152,7 @@ end
 ---@return neotest.RunSpec
 function adapter.build_spec(args)
   local results_path = async.fn.tempname()
+  local strategy = args.strategy
   local position = args.tree:data()
   local dir = "./"
   if recursive_run() then
@@ -173,13 +174,19 @@ function adapter.build_spec(args)
     vim.list_extend(get_args(location), args.extra_args or {}),
     dir,
   })
-  return {
-    command = table.concat(command, " "),
+  local return_result = {
+    command = table.concat(command, ' '),
     context = {
       results_path = results_path,
-      file = position.path,
-    },
+      file = position.path
+    }
   }
+
+  if strategy == 'dap' then
+    return_result.strategy = utils.get_dap_config()
+  end
+
+  return return_result
 end
 
 ---@async
@@ -222,7 +229,7 @@ function adapter.prepare_results(tree, lines, go_root, go_module)
     local value = node:data()
     if no_results then
       results[value.id] = {
-        status = test_statuses.fail,
+        status = test_statuses.skip,
         output = empty_result_fname,
       }
       break
