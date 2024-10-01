@@ -21,6 +21,10 @@ local recursive_run = function()
   return false
 end
 
+local c_compiler = function()
+  return "gcc-11"
+end
+
 ---@type neotest.Adapter
 local adapter = { name = "neotest-go" }
 
@@ -166,6 +170,7 @@ function adapter.build_spec(args)
     "cd",
     location,
     "&&",
+    "CC=" .. c_compiler(),
     "go",
     "test",
     "-v",
@@ -294,6 +299,11 @@ setmetatable(adapter, {
     elseif opts.recursive_run then
       recursive_run = function()
         return opts.recursive_run
+      end
+    end
+    if opts.c_compiler then
+      c_compiler = function()
+        return opts.c_compiler
       end
     end
     return adapter
