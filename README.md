@@ -42,7 +42,7 @@ makes heavy use of tabs and newlines in the error messages, which reduces the re
 the generated virtual text otherwise.
 
 You can also supply optional arguments to the setup function if you want to
-enable experimental features or provide more arguments to `go test` command.
+enable experimental features, provide more arguments to `go test` command, or set the `CC` env variable in the test context.
 
 ```lua
 require("neotest").setup({
@@ -51,7 +51,8 @@ require("neotest").setup({
       experimental = {
         test_table = true,
       },
-      args = { "-count=1", "-timeout=60s" }
+      args = { "-count=1", "-timeout=60s" },
+      c_compiler = "clang",
     })
   }
 })

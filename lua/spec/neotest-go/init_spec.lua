@@ -39,6 +39,7 @@ plugin({
     test_table = true,
   },
   args = { "-count=1", "-timeout=60s" },
+  c_compiler = "gcc",
 })
 
 describe("is_test_file", function()
@@ -375,7 +376,7 @@ describe("prepare_results", function()
           table.insert(lines, s)
         end
         local processed_results =
-          plugin.prepare_results(positions, lines, tests_folder, "neotest_go")
+            plugin.prepare_results(positions, lines, tests_folder, "neotest_go")
 
         assert.equals(test_result.status, processed_results[test_file].status)
       end)
@@ -390,8 +391,8 @@ describe("build_spec", function()
 
     local args = { tree = tree }
     local expected_command = "cd "
-      .. vim.loop.cwd()
-      .. "/neotest_go && go test -v -json  -count=1 -timeout=60s ./"
+        .. vim.loop.cwd()
+        .. "/neotest_go && CC=gcc go test -v -json  -count=1 -timeout=60s ./"
     local result = plugin.build_spec(args)
     assert.are.same(expected_command, result.command)
     assert.are.same(path, result.context.file)
@@ -403,8 +404,8 @@ describe("build_spec", function()
 
     local args = { tree = tree }
     local expected_command = "cd "
-      .. vim.loop.cwd()
-      .. "/neotest_go && go test -v -json  -count=1 -timeout=60s ./..."
+        .. vim.loop.cwd()
+        .. "/neotest_go && CC=gcc go test -v -json  -count=1 -timeout=60s ./..."
     local result = plugin_with_recursive_run.build_spec(args)
     assert.are.same(expected_command, result.command)
     assert.are.same(path, result.context.file)
