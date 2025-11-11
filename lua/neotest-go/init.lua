@@ -46,7 +46,7 @@ function adapter._generate_position_id(position, namespaces)
     end
   end
   local name = utils.transform_test_name(position.name)
-  return table.concat(vim.tbl_flatten({ position.path, prefix, name }), "::")
+  return table.concat(utils.tbl_flatten({ position.path, prefix, name }), "::")
 end
 
 ---@async
@@ -162,7 +162,7 @@ function adapter.build_spec(args)
   if fn.isdirectory(position.path) ~= 1 then
     location = fn.fnamemodify(position.path, ":h")
   end
-  local command = vim.tbl_flatten({
+  local command = utils.tbl_flatten({
     "cd",
     location,
     "&&",
@@ -175,14 +175,14 @@ function adapter.build_spec(args)
     dir,
   })
   local return_result = {
-    command = table.concat(command, ' '),
+    command = table.concat(command, " "),
     context = {
       results_path = results_path,
-      file = position.path
-    }
+      file = position.path,
+    },
   }
 
-  if strategy == 'dap' then
+  if strategy == "dap" then
     return_result.strategy = utils.get_dap_config()
   end
 
